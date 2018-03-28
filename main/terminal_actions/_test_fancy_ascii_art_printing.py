@@ -10,13 +10,18 @@ if __name__ == '__main__':
 
     fonts = pyfiglet.Figlet().getFonts()
 
+    f = pyfiglet.Figlet(width=260)
     for font in fonts:
         print(f"printed font = {font}")
+        f.setFont(font=font)
         cprint(
-            figlet_format(
-                'missile!',
-                font=font),  # starwars #swampland #stforek
+
+            f.renderText("battle !"),
+            # figlet_format(
+            #     'battle !',
+            #     font=font),  # starwars #swampland #stforek
             'yellow',
             'on_red',
-            attrs=['bold'])  # bold
+            attrs=['bold']
+        )  # bold
         print()
