@@ -1,0 +1,8 @@
+STRENGTH = "strength"
+DEXTERITY = "dexterity"
+VITALITY = "vitality"
+PERCEPTION = "perception"
+MAGIC = "magic"
+WARRIOR = "Warrior"
+MAGE = "Mage"
+ROGUE = "Rouge"
