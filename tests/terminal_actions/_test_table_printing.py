@@ -1,5 +1,7 @@
+#TODO write tests here
+
 if __name__ == '__main__':
-    from terminal_actions.printing import _read_csv, print_as_texttable, print_as_prettytable, print_as_tabulate
+    from main.terminal_actions.printing import _read_csv, print_as_texttable, print_as_prettytable, print_as_tabulate
 
     headers, values = _read_csv("_test_file_for_table_printing.csv")
     print("TABULATE LIBRARY:\n")

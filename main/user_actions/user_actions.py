@@ -1,6 +1,6 @@
 from functools import partial
 
-from user_actions.actions_dictfile import actions
+from main.user_actions.actions_dictfile import actions
 
 
 def act(action=""):

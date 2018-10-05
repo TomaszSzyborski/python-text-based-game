@@ -1,3 +1,5 @@
+#TODO write tests here
+
 import os
 import sys
 import time
@@ -8,7 +10,7 @@ import texttable
 import tabulate
 import prettytable
 
-from user_actions.actions_descriptions_dictfile import actions_descriptions
+from main.user_actions.actions_descriptions_dictfile import actions_descriptions
 
 
 def _clear_screen_before_output():

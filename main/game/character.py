@@ -9,6 +9,14 @@ class Character:
     """
     __inventory = []
 
+    @property
+    def inventory(self):
+        '''
+        Character.inventory is a property
+        This is the getter method
+        '''
+        return self.__inventory
+
     __attributes = {
         "Strength": 0,
         "Dexterity": 0,
@@ -19,7 +27,7 @@ class Character:
     __traits = {
         "Defense": 0,
         "Attack": 0,
-        "Damage": 0,#dupcia,
+        "Damage": 0,
         "Magic Damage": 0
     }
 
@@ -45,7 +53,7 @@ class Character:
         """
         self.__inventory.append(item)
 
-    def throw_item_on_the_floor(self, item_number):
+    def drop_item_on_the_floor(self, item_number):
         """
         Removes and returns item object from inventory
         to be passed into room's floor
@@ -62,19 +70,3 @@ class Character:
 def pretty(strings, instance_and_method, *args):
     print(strings)
     instance_and_method(*args)
-
-
-if __name__ == '__main__':
-    dude = Character()
-
-    pretty("Listing items in directory", dude.list_items_in_inventory)
-
-    for item in ["Sword", "Buckler", "Potion"]:
-        pretty(f"Putting {item} into inventory", dude.put_into_inventory, f"{item}")
-
-    pretty("Listing items in directory", dude.list_items_in_inventory)
-
-    pretty("Throwing out item nr 3", dude.throw_item_on_the_floor, 3)
-
-    pretty("Listing items in directory", dude.list_items_in_inventory)
-

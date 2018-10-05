@@ -1,6 +1,8 @@
+#TODO write tests here
+
 from functools import partial
 
-from terminal_actions.printing import print_actions
+from main.terminal_actions.printing import print_actions
 
 actions = {
     "help": partial(print_actions),
