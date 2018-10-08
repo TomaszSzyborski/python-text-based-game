@@ -1,8 +1,12 @@
 import pytest
+from pytest import fixture
 
-from main.game.character import Character
+from main.model.character import Character
+import logging
 
-@pytest.fixture
+log = logging.getLogger("LOGGER")
+
+@fixture
 def character():
     return Character({
         "Strength": 10,
@@ -11,7 +15,8 @@ def character():
         "Magic": 10
     })
 
-@pytest.fixture
+
+@fixture
 def character_with_items():
     c = Character({
         "Strength": 10,
@@ -25,11 +30,12 @@ def character_with_items():
 
 
 def test_add_item_to_inventory(character):
+    log.info(f"Inventory: {character.inventory}")
     assert character.inventory == []
-
     for index, item in enumerate(["Sword", "Buckler", "Potion"]):
         character.put_into_inventory(item)
         assert len(character.inventory) == index + 1
+
 
 def test_drop_item_on_the_floor(character_with_items):
     assert len(character_with_items.inventory) == 2
@@ -37,3 +43,4 @@ def test_drop_item_on_the_floor(character_with_items):
     assert len(character_with_items.inventory) == 1
     character_with_items.drop_item_on_the_floor(1)
     assert len(character_with_items.inventory) == 0
+    character_with_items.drop_item_on_the_floor(1)

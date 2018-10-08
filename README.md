@@ -8,8 +8,16 @@ pytest-cov for test coverage
 
 run tests with `python setup.py pytest` - from pycharm terminal
 or
-`python -m pytest --cov --cov-report term-missing`
+`python -m pytest -s -v --log-level=INFO --cov --cov-report term-missing`
 
+or
+
+`python -m pytest -s -v --log-level=DEBUG --cov --cov-report term-missing`
+
+or
+
+`python -m pytest .\tests\ -s -v --log-cli-level=DEBUG
+`
 Knowledge for testing:
 https://pytest-cov.readthedocs.io/en/latest/readme.html
 
@@ -20,3 +28,12 @@ https://www.jetbrains.com/help/pycharm/pytest.html
 
 colorize output:
 https://www.programcreek.com/python/example/51994/colorama.Fore
+
+https://stackoverflow.com/questions/47498390/using-pytest-where-test-in-subfolder
+
+Architecture:
+
+https://developer.mozilla.org/en-US/docs/Web/Apps/Fundamentals/Modern_web_app_architecture/MVC_architecture
+
+Alignments
+http://easydamus.com/chaoticneutral.html
