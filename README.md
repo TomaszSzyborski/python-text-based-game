@@ -37,3 +37,12 @@ https://developer.mozilla.org/en-US/docs/Web/Apps/Fundamentals/Modern_web_app_ar
 
 Alignments
 http://easydamus.com/chaoticneutral.html
+
+
+Additional sources of info:
+https://www.raspberrypi.org/forums/viewtopic.php?t=24589
+https://www.reddit.com/r/Python/comments/dsfft/whats_the_best_way_to_make_an_ascii_interface_for/
+https://bitbucket.org/libtcod/libtcod
+https://docs.python.org/dev/howto/curses.html
+https://inventwithpython.com/pygcurse/
+https://www.pygame.org/news
