@@ -50,3 +50,6 @@ https://www.pygame.org/news
 maybe use:
 https://github.com/laffra/auger
 for test generation
+
+pygame tests:
+https://www.pygame.org/docs/ref/tests.html
