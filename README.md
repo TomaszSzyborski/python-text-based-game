@@ -60,3 +60,9 @@ https://www.asciiart.eu/
 https://asciiart.website/
 https://asciiart.website/index.php?art=art%20and%20design/borders
 http://copy.r74n.com/ascii-art
+
+additional polish onomatopeia:
+`tup tup tup` `ciach` `bęc` `łup` `siek` `sznyt` `dźg`
+
+music like:
+https://www.youtube.com/watch?v=j1FzVxVU5bU

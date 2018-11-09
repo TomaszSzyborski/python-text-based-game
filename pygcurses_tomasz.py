@@ -1,18 +1,23 @@
 """
 Pygcurse
 
-Pygcurse (pronounced "pig curse") is a curses library emulator that runs on top of the Pygame framework. It provides an easy way to create text adventures, roguelikes, and console-style applications.
-Pygcurse requires Pygame to be installed. Pygame can be downloaded from http://pygame.org
+Pygcurse (pronounced "pig curse") is a curses library emulator that runs on top of the Pygame framework.
+It provides an easy way to create text adventures, roguelikes, and console-style applications.
+Pygcurse requires Pygame to be installed.
 
+Pygame can be downloaded from http://pygame.org
+
+Original author:
 Al Sweigart (al@inventwithpython.com)
-https://github.com/asweigart/pygcurse
-
+https://github.com/asweigart/inventwithpythondotcom/tree/master/static/pygcurse
 Released under a Simplified BSD License
+
 
 modified on 8.11.2018 by
 Tomasz Szyborski
 - added fixes with missing self.
 - added TODOS with writing text boxes
+-upgrade version to 0.10.3
 """
 
 __version__ = '0.10.3'
@@ -22,7 +27,19 @@ import sys
 import textwrap
 import unicodedata
 import pygame
-from pygame.locals import *
+
+# removing wildcard imports
+# instead of:
+# from pygame.locals import *
+# let's do:
+# from pygame.constants import *
+from pygame.constants import K_LEFT, K_RIGHT, QUIT, KEYDOWN, KEYUP,\
+                             K_HOME, K_END, K_BACKSPACE, K_DELETE,\
+                             K_INSERT, KMOD_CAPS, KMOD_LSHIFT, KMOD_RSHIFT\
+
+import pygame.color as color
+Color = color.Color
+
 
 RUNNING_ON_PYTHON2 = sys.version.startswith('2.')
 
@@ -54,11 +71,11 @@ Note about flickering: If your program is experiencing a lot of flicker, than yo
 """
 
 # Wrapper for compatibility with Python 3.x, which has no unicode() function
-try:
-    unicode
-except NameError:
-    def unicode(string):
-        return str(string)
+
+
+def unicode(string):
+    return str(string)
+
 
 DEFAULTFGCOLOR = pygame.Color(164, 164, 164, 255) # default foreground color is gray (must be a pygame.Color object)
 DEFAULTBGCOLOR = pygame.Color(0, 0, 0, 255) # default background color is black (must be a pygame.Color object)
@@ -678,7 +695,8 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         - bgcolor is the color to set the background to.
         """
         if region == None:
-            self._fgcolor = fgcolor
+            # TODO why fgcolor? have to check it out and fix it, temporary setting to whitesmoke
+            self._fgcolor = color.THECOLORS['whitesmoke'] # fgcolor
             return
 
         regionx, regiony, regionwidth, regionheight = self.getregion(region)
@@ -1954,7 +1972,8 @@ class PygcurseInput():
             if self.eraseBufferSize is not None:
                 # need to blank out the previous drawn, longer string.
                 tempcursorx = self.startx
-                while tempcursorx < pygsurfObj.width and tempcursorx < self.startx + len(self.prompt) + eraseBufferSize:
+                # TODO fix too long line
+                while tempcursorx < pygsurfObj.width and tempcursorx < self.startx + len(self.prompt) + self.eraseBufferSize:
                     pygsurfObj.putchar(' ', tempcursorx, self.starty)
                     tempcursorx += 1
                 self.eraseBufferSize = None
@@ -2328,7 +2347,7 @@ class PygcurseTextbox:
         self.x = value[0] - int(self.width / 2)
         self.y = value[1] - self.height
     def _propsetregion(self, value):
-        self.x, self.y, self.width, self.height = pygsurf.getregion(value, False)
+        self.x, self.y, self.width, self.height = self.pygsurf.getregion(value, False)
 
     def _propgetsize(self):
         return (self.width, self.height)
