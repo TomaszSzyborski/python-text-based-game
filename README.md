@@ -46,3 +46,7 @@ https://bitbucket.org/libtcod/libtcod
 https://docs.python.org/dev/howto/curses.html
 https://inventwithpython.com/pygcurse/
 https://www.pygame.org/news
+
+maybe use:
+https://github.com/laffra/auger
+for test generation

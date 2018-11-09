@@ -45,3 +45,27 @@ for char in 'It is good to meet you!':
 win.write("\n")
 
 pygcurse.waitforkeypress()
+
+FPS = 25
+WINDOWWIDTH = 26
+WINDOWHEIGHT = 27
+BOARDWIDTH = 10
+BOARDHEIGHT = 20
+BLANK = None
+
+LEFTMARGIN = 4
+TOPMARGIN = 4
+
+MOVESIDEWAYSFREQ = 0.15
+MOVEDOWNFREQ = 0.15
+print(pygame.color.THECOLORS.keys())
+
+WINDOWSURF = pygcurse.PygcurseWindow(80, 30, 'Textris', font=pygame.font.Font(None, 12))
+WINDOWSURF.autoupdate = False
+BOARDBOX = pygcurse.PygcurseTextbox(WINDOWSURF,
+                                    (LEFTMARGIN - 1, TOPMARGIN - 1, 10, 10),
+                                    border="rouded",
+                                    bgcolor=pygame.color.THECOLORS['springgreen4'])
+BOARDBOX.update()
+
+pygcurse.waitforkeypress()
