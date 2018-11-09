@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?><testsuite errors="0" failures="1" name="pytest" skips="0" tests="5" time="0.632"><testcase classname="tests.test_pytest_fixtures_logging" file="tests\test_pytest_fixtures_logging.py" line="23" name="test_one" time="0.012506484985351562"></testcase><testcase classname="tests.test_pytest_fixtures_logging" file="tests\test_pytest_fixtures_logging.py" line="30" name="test_two" time="0.010531902313232422"><failure message="assert 1 == 0">session_thing = None, testcase_thing = None
+
+    def test_two(session_thing, testcase_thing):
+        foo.info(&apos;two executes&apos;)
+        bar.warning(&apos;neither does this&apos;)
+        baz.info(&apos;extra log, not enabled by default&apos;)
+&gt;       assert 1==0
+E       assert 1 == 0
+
+tests\test_pytest_fixtures_logging.py:35: AssertionError</failure></testcase><testcase classname="tests.model.test_character" file="tests\model\test_character.py" line="31" name="test_add_item_to_inventory" time="0.0040111541748046875"></testcase><testcase classname="tests.model.test_character" file="tests\model\test_character.py" line="39" name="test_drop_item_on_the_floor" time="0.004009246826171875"></testcase><testcase classname="tests.model.test_inventory_item" file="tests\model\test_inventory_item.py" line="18" name="test_total_cost" time="0.003509998321533203"></testcase></testsuite>
