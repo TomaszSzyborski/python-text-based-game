@@ -1,4 +1,5 @@
-import pygcurse, pygame, sys
+import pygame, sys
+import pygcurses_tomasz as pygcurse
 from pygame.locals import *
 win = pygcurse.PygcurseWindow(40, 25)
 win.autoblit = False

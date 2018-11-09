@@ -53,3 +53,10 @@ for test generation
 
 pygame tests:
 https://www.pygame.org/docs/ref/tests.html
+
+adding fancy ascii borders:
+https://cutekaomoji.com/misc/borders/
+https://www.asciiart.eu/
+https://asciiart.website/
+https://asciiart.website/index.php?art=art%20and%20design/borders
+http://copy.r74n.com/ascii-art
