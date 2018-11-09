@@ -8,9 +8,14 @@ Al Sweigart (al@inventwithpython.com)
 https://github.com/asweigart/pygcurse
 
 Released under a Simplified BSD License
+
+modified on 8.11.2018 by
+Tomasz Szyborski
+- added fixes with missing self.
+- added TODOS with writing text boxes
 """
 
-__version__ = '0.10.2'
+__version__ = '0.10.3'
 
 import time
 import sys
@@ -77,7 +82,7 @@ SOUTHWEST = 'SW'
 #This is directly derived from the strings Pygame offers as representing
 #colors via its .colordict module so it's 99.9% guaranteed to be correct
 colornames = {}
-for cname, colortuple in pygame.colordict.THECOLORS.items():
+for cname, colortuple in pygame.color.THECOLORS.items():
     colornames[cname] = pygame.Color(*colortuple)
 
 
