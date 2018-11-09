@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# noinspection SpellCheckingInspection
 """
 Pygcurse
 
@@ -18,32 +20,7 @@ Tomasz Szyborski
 - added fixes with missing self.
 - added TODOS with writing text boxes
 -upgrade version to 0.10.3
-"""
 
-__version__ = '0.10.3'
-
-import time
-import sys
-import textwrap
-import unicodedata
-import pygame
-
-# removing wildcard imports
-# instead of:
-# from pygame.locals import *
-# let's do:
-# from pygame.constants import *
-from pygame.constants import K_LEFT, K_RIGHT, QUIT, KEYDOWN, KEYUP,\
-                             K_HOME, K_END, K_BACKSPACE, K_DELETE,\
-                             K_INSERT, KMOD_CAPS, KMOD_LSHIFT, KMOD_RSHIFT\
-
-import pygame.color as color
-Color = color.Color
-
-
-RUNNING_ON_PYTHON2 = sys.version.startswith('2.')
-
-"""
 Some nomenclature in this module's comments explained:
 
 Cells:
@@ -69,6 +46,29 @@ A "region" defines an area of the surface. It can be the following formats:
 
 Note about flickering: If your program is experiencing a lot of flicker, than you should disable the self._autoupdate member. By default, this is enabled and the screen is redrawn after each method call that makes a change to the screen.
 """
+__version__ = '0.10.3'
+
+import time
+import sys
+import textwrap
+import unicodedata
+import pygame
+
+# removing wildcard imports
+# instead of:
+# from pygame.locals import *
+# let's do:
+# from pygame.constants import *
+from pygame.constants import K_LEFT, K_RIGHT, QUIT, KEYDOWN, KEYUP, \
+    K_HOME, K_END, K_BACKSPACE, K_DELETE, \
+    K_INSERT, KMOD_CAPS, KMOD_LSHIFT, KMOD_RSHIFT
+
+import pygame.color as color
+
+Color = color.Color
+
+RUNNING_ON_PYTHON2 = sys.version.startswith('2.')
+
 
 # Wrapper for compatibility with Python 3.x, which has no unicode() function
 
@@ -77,9 +77,13 @@ def unicode(string):
     return str(string)
 
 
-DEFAULTFGCOLOR = pygame.Color(164, 164, 164, 255) # default foreground color is gray (must be a pygame.Color object)
-DEFAULTBGCOLOR = pygame.Color(0, 0, 0, 255) # default background color is black (must be a pygame.Color object)
-ERASECOLOR = pygame.Color(0, 0, 0, 0) # erase color has 0 alpha level (must be a pygame.Color object)
+# default foreground color is gray (must be a pygame.Color object)
+DEFAULTFGCOLOR: Color = Color(*pygame.color.THECOLORS['gray'])
+# default background color is black (must be a pygame.Color object)
+DEFAULTBGCOLOR: Color = Color(*pygame.color.THECOLORS['black'])
+# erase color has 0 alpha level (must be a pygame.Color object)
+none_color = (0, 0, 0, 0)
+ERASECOLOR: Color = pygame.Color(*none_color)
 
 # Internally used constants:
 _NEW_WINDOW = 'new_window'
@@ -96,15 +100,14 @@ SOUTHEAST = 'SE'
 SOUTHWEST = 'SW'
 
 # A mapping of strings to color objects.
-#This is directly derived from the strings Pygame offers as representing
-#colors via its .colordict module so it's 99.9% guaranteed to be correct
+# This is directly derived from the strings Pygame offers as representing
+# colors via its .colordict module so it's 99.9% guaranteed to be correct
 colornames = {}
 for cname, colortuple in pygame.color.THECOLORS.items():
     colornames[cname] = pygame.Color(*colortuple)
 
 
 class PygcurseSurface(object):
-
     """
     A PygcurseSurface object is the ascii-based analog of Pygame's Surface objects. It represents a 2D field of ascii characters, exactly like a console terminal. Each cell can have a different character, foreground color, background color, and RGB tint. The PygcurseSurface object also tracks the location of the cursor (where the print() and putchar() functions will output text) and the "input cursor" (the blinking cursor when the user is typing in characters.)
 
@@ -116,7 +119,8 @@ class PygcurseSurface(object):
     """
     _pygcurseClass = 'PygcurseSurface'
 
-    def __init__(self, width=80, height=25, font=None, fgcolor=DEFAULTFGCOLOR, bgcolor=DEFAULTBGCOLOR, windowsurface=None):
+    def __init__(self, width=80, height=25, font=None, fgcolor=DEFAULTFGCOLOR, bgcolor=DEFAULTBGCOLOR,
+                 windowsurface=None):
         """
         Creates a new PygcurseSurface object.
 
@@ -133,43 +137,54 @@ class PygcurseSurface(object):
         self._width = width
         self._height = height
 
-        # The self._screen* members are 2D lists that store data for each cell of the PygcurseSurface object. _screenchar[x][y] holds the character at cell x, y. _screenfgcolor and _screenbgcolor  stores the foreground/background color of the cell, etc.
-        self._screenchar = [[None] * height for i in range(width)]
+        # The self._screen* members are 2D lists that store data for each
+        # cell of the PygcurseSurface object.
+        # screenchar[x][y] holds the character at cell x, y.
+        # screenfgcolor and _screenbgcolor  stores the foreground/background color of the cell, etc.
+        self._screenchar = [[None] * height for _ in range(width)]
 
         # intialize the foreground and background colors of each cell
         self._fgcolor = fgcolor
         self._bgcolor = bgcolor
-        # make sure the values in _screenfgcolor and _screenbgcolor are always pygame.Color objects, and not RGB/RGBA tuples or color strings like 'blue'. Use getpygamecolor().
-        self._screenfgcolor = [[None] * height for i in range(width)]
-        self._screenbgcolor = [[None] * height for i in range(width)]
+        # make sure the values in _screenfgcolor and _screenbgcolor are always pygame.Color objects,
+        # and not RGB/RGBA
+        # tuples or color strings like 'blue'. Use getpygamecolor().
+        self._screenfgcolor = [[None] * height for _ in range(width)]
+        self._screenbgcolor = [[None] * height for _ in range(width)]
+
         for x in range(width):
             for y in range(height):
                 self._screenfgcolor[x][y] = fgcolor
                 self._screenbgcolor[x][y] = bgcolor
 
-        # intialize the dirty flag for each cell to True. If the cell's dirty flag is True, then update() needs to update this cell on the self._surfaceobj pygame.Surface object.
-        self._screendirty = [[True] * height for i in range(width)]
+        # intialize the dirty flag for each cell to True.
+        # If the cell's dirty flag is True, then update()
+        # needs to update this cell on the self._surfaceobj pygame.Surface object.
+        self._screendirty = [[True] * height for _ in range(width)]
 
         # initalize the tinting of each cell to 0. (255 is max, -255 is minimum)
         self._rdelta = 0
         self._gdelta = 0
         self._bdelta = 0
-        self._screenRdelta = [[0] * height for i in range(width)]
-        self._screenGdelta = [[0] * height for i in range(width)]
-        self._screenBdelta = [[0] * height for i in range(width)]
+        self._screenRdelta = [[0] * height for _ in range(width)]
+        self._screenGdelta = [[0] * height for _ in range(width)]
+        self._screenBdelta = [[0] * height for _ in range(width)]
 
-        # The "input cursor" is a separate cursor used by the input() method (and PygcurseInput objects). It tracks where the typed characters should appear. This is separate from the regular cursor which tracks where print() and putchar() should output characters. The mode can be:
+        # The "input cursor" is a separate cursor used by the input() method
+        # (and PygcurseInput objects). It tracks where the typed characters should appear.
+        # This is separate from the regular cursor which tracks where print()
+        # and putchar() should output characters. The mode can be:
         # - None, meaning there is no visible cursor
         # - 'underline', meaning a generic underscore-looking cursor
         # - 'insert', meaning a small box cursor (used when the Insert key has been pressed.)
         # - 'box', which is a box that covers the entire cell, and inverts the foreground and background colors.
         # inputcursorblinking is a boolean variable that tracks if the input cursor should be blinking or stay solid.
-        self._inputcursormode = None # either None, 'underline', 'insert' or 'box'
+        self._inputcursormode = None  # either None, 'underline', 'insert' or 'box'
         self.inputcursorblinking = True
         self._inputcursorx = 0
         self._inputcursory = 0
 
-        self._scrollcount = 0 # the number of times writing text to the bottom row has scrolled the screen up a line.
+        self._scrollcount = 0  # the number of times writing text to the bottom row has scrolled the screen up a line.
 
         if font is None:
             self._font = pygame.font.Font(None, 18)
@@ -177,14 +192,15 @@ class PygcurseSurface(object):
             self._font = font
 
         # the width and height in pixels of each cell depends on the font used.
-        self._cellwidth, self._cellheight = calcfontsize(self._font) # width and height of each cell in pixels
+        self._cellwidth, self._cellheight = calcfontsize(self._font)  # width and height of each cell in pixels
 
         self._autoupdate = True
         if windowsurface == _NEW_WINDOW:
             self._windowsurface = pygame.display.set_mode((self._cellwidth * width, self._cellheight * height))
             self._managesdisplay = True
         elif windowsurface == FULLSCREEN:
-            self._windowsurface = pygame.display.set_mode((self._cellwidth * width, self._cellheight * height), pygame.FULLSCREEN)
+            self._windowsurface = pygame.display.set_mode((self._cellwidth * width, self._cellheight * height),
+                                                          pygame.FULLSCREEN)
             self._managesdisplay = True
         else:
             self._windowsurface = windowsurface
@@ -192,17 +208,18 @@ class PygcurseSurface(object):
         self._autodisplayupdate = self._windowsurface is not None
         self._autoblit = self._windowsurface is not None
 
-        self._tabsize = 8 # how many spaces a tab inserts.
+        self._tabsize = 8  # how many spaces a tab inserts.
 
         # width and height of the entire surface, in pixels.
         self._pixelwidth = self._width * self._cellwidth
         self._pixelheight = self._height * self._cellheight
 
         self._surfaceobj = pygame.Surface((self._pixelwidth, self._pixelheight))
-        self._surfaceobj = self._surfaceobj.convert_alpha() # TODO - This is needed for erasing, but does this have a performance hit?
+        # TODO - This is needed for erasing, but does this have a performance hit?
+        self._surfaceobj = self._surfaceobj.convert_alpha()
 
-
-    def input(self, prompt='', x=None, y=None, maxlength=None, fgcolor=None, bgcolor=None, promptfgcolor=None, promptbgcolor=None, whitelistchars=None, blacklistchars=None, callbackfn=None, fps=None):
+    def input(self, prompt='', x=None, y=None, maxlength=None, fgcolor=None, bgcolor=None, promptfgcolor=None,
+              promptbgcolor=None, whitelistchars=None, blacklistchars=None, callbackfn=None, fps=None):
         """
         A pygcurse version of the input() and raw_input() functions. When called, it displays a cursor on the screen and lets the user type in a string. This function blocks until the user presses Enter, and it returns the string the user typed in.
 
@@ -221,41 +238,44 @@ class PygcurseSurface(object):
         if fps is not None:
             clock = pygame.time.Clock()
 
-        inputObj = PygcurseInput(self, prompt, x, y, maxlength, fgcolor, bgcolor, promptfgcolor, promptbgcolor, whitelistchars, blacklistchars)
-        self.inputcursor = inputObj.startx, inputObj.starty
+        input_obj = PygcurseInput(self, prompt, x, y, maxlength, fgcolor,
+                                  bgcolor, promptfgcolor, promptbgcolor,
+                                  whitelistchars, blacklistchars)
 
-        while True: # the event loop
-            self._inputcursormode = inputObj.insertMode and 'insert' or 'underline'
+        self.inputcursor = input_obj.startx, input_obj.starty
 
-            #The only thing a callbackfn might want to have access to that it couldn't legitimately have access to
-            #through closures is our inputobj - so we hand it to it! You'll also note that we call it before processing
-            #the pygame event queue so that it has first pick of the incoming events.
-            #Of course, we only call callbackfn if it is non-None.
+        while True:  # the event loop
+            self._inputcursormode = input_obj.insertMode and 'insert' or 'underline'
+
+            # The only thing a callbackfn might want to have access to that it couldn't legitimately have access to
+            # through closures is our inputobj - so we hand it to it! You'll also note that we call it before processing
+            # the pygame event queue so that it has first pick of the incoming events.
+            # Of course, we only call callbackfn if it is non-None.
             if callbackfn:
                 try:
-                    callbackfn(inputObj)
+                    callbackfn(input_obj)
                 except TypeError as e:
-                    #However, old callbackfn()s might not expect a parameter - so if we get such an error,
-                    #we just call it again without the parameter.
-                    #Gotta make sure it was this specific thing that caused the error, though.
+                    # However, old callbackfn()s might not expect a parameter - so if we get such an error,
+                    # we just call it again without the parameter.
+                    # Gotta make sure it was this specific thing that caused the error, though.
                     if e.args[0] == "callbackfn() takes 0 positional arguments but 1 was given":
                         callbackfn()
                     else:
-                        #if not, reraise it.
+                        # if not, reraise it.
                         raise
 
-            #As explained in a comment in waitforkeypress, only pulling out specific event types causes the
-            #program to hang if other events happen.
-            for event in pygame.event.get(): # TODO - handle holding down the keys
+            # As explained in a comment in waitforkeypress, only pulling out specific event types causes the
+            # program to hang if other events happen.
+            for event in pygame.event.get():  # TODO - handle holding down the keys
                 if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
                 elif event.type in (KEYDOWN, KEYUP):
-                    inputObj.sendkeyevent(event)
-                    if inputObj.done:
-                        return ''.join(inputObj.buffer)
+                    input_obj.sendkeyevent(event)
+                    if input_obj.done:
+                        return ''.join(input_obj.buffer)
 
-            inputObj.update()
+            input_obj.update()
             self.update()
 
             if fps is not None:
@@ -263,8 +283,11 @@ class PygcurseSurface(object):
 
     raw_input = input
 
-    # This code makes my eyes (and IDEs) bleed (and maintenance a nightmare), but it's the only way to have syntactically correct code that is compatible with both Python 2 and Python 3:
-    if RUNNING_ON_PYTHON2: # for Python 2 version
+    # This code makes my eyes (and IDEs) bleed
+    # (and maintenance a nightmare),
+    # but it's the only way to have syntactically correct code that is
+    # compatible with both Python 2 and Python 3:
+    if RUNNING_ON_PYTHON2:  # for Python 2 version
         exec(r'''
 def pygprint(self, *objs): # PY2
     """
@@ -277,7 +300,7 @@ def pygprint(self, *objs): # PY2
 
     self.write(' '.join(unicode(x) for x in objs) + '\n')
 ''')
-    else: # for Python 3 version
+    else:  # for Python 3 version
         exec(r'''
 def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None, x=None, y=None):
     """
@@ -304,21 +327,19 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
 #print = pygprint # Actually, this line is a bad idea and only encourages non-compatibility. Leave it commented out.
 ''')
 
-
-    def blitto(self, surfaceObj, dest=(0, 0)):
+    def blitto(self, surface_obj, dest=(0, 0)):
         """
         Copies this object's pygame.Surface to another surface object. (Usually, this surface object is the one returned by pygame.display.set_mode().)
 
         - surfaceObj is the pygame.Surface object to copy this PygcurseSurface's image to.
         - dest is a tuple of the xy pixel coordinates of the topleft corner where the image should be copied. By default, it is (0,0).
         """
-        return surfaceObj.blit(self._surfaceobj, dest)
-
+        return surface_obj.blit(self._surfaceobj, dest)
 
     def pushcursor(self):
-        """Save the current cursor positions to a stack for them. This is useful when you need to modify the cursor position but want to restore it later."""
-        self._cursorstack.append( (self._cursorx, self._cursory) )
-
+        """Save the current cursor positions to a stack for them.
+        This is useful when you need to modify the cursor position but want to restore it later."""
+        self._cursorstack.append((self._cursorx, self._cursory))
 
     def popcursor(self):
         """Restore the cursor position from the cursor stack."""
@@ -326,7 +347,6 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         self._cursorx = x
         self._cursory = y
         return x, y
-
 
     def getnthcellfrom(self, x, y, spaces):
         """
@@ -337,7 +357,6 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         spaces -= x
         y += 1
         return spaces % self._width, y + int(spaces / self._width)
-
 
     def update(self):
         """
@@ -354,16 +373,20 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
 
         # TODO - None of this code is optimized yet.
 
-        # "Dirty" means that the cell's state has been altered on the backend and it needs to be redrawn on pygame.Surface object (which will make the cell "clean").
+        # "Dirty" means that the cell's state has been altered on the backend
+        #  and it needs to be redrawn on pygame.
+        # Surface object (which will make the cell "clean").
         for x in range(self._width):
             for y in range(self._height):
                 # Skip if previous char was a CJK wide char
-                if x > 0 and iswide(self._screenchar[x-1][y]):
-                    # Set this unprinted char to a dummy value. Otherwise, it will screw up following chars (thanks to this same check) if it happened to have the value of a wide char.
+                if x > 0 and iswide(self._screenchar[x - 1][y]):
+                    # Set this unprinted char to a dummy value.
+                    # Otherwise, it will screw up following chars (thanks to this same check)
+                    #  if it happened to have the value of a wide char.
                     self._screenchar[x][y] = None
                     continue
 
-                if self._screendirty[x][y]: # draw to surfaceobj all the dirty cells.
+                if self._screendirty[x][y]:  # draw to surfaceobj all the dirty cells.
                     self._screendirty[x][y] = False
 
                     # modify the fg and bg color if there is a tint
@@ -379,13 +402,19 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
                     self._surfaceobj.fill(cellbgcolor, cellrect)
 
                     if self._screenchar[x][y] == ' ':
-                        continue # don't need to render anything if it is just a space character.
+                        continue  # don't need to render anything if it is just a space character.
 
                     # render the character and draw it to the surface
                     charsurf = self._font.render(self._screenchar[x][y], 1, cellfgcolor, cellbgcolor)
+
                     charrect = charsurf.get_rect()
-                    charrect.centerx = self._cellwidth * x + int(self._cellwidth*getcharwidth(self._screenchar[x][y]) / 2)
-                    charrect.bottom = self._cellheight * (y + 1) # TODO - not correct, this would put stuff like g, p, q higher than normal.
+
+                    charrect.centerx = self._cellwidth * x + int(
+                        self._cellwidth * getcharwidth(self._screenchar[x][y]) / 2)
+
+                    charrect.bottom = self._cellheight * (
+                            y + 1)  # TODO - not correct, this would put stuff like g, p, q higher than normal.
+
                     self._surfaceobj.blit(charsurf, charrect)
 
         self._drawinputcursor()
@@ -396,22 +425,26 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
             if self._autodisplayupdate:
                 pygame.display.update()
 
-
     def _drawinputcursor(self):
-        """Draws the input cursor directly onto the self._surfaceobj Surface object, if self._inputcursormode is not None."""
+        """Draws the input cursor directly onto the self._
+        surfaceobj Surface object,
+        if self._inputcursormode is not None."""
         if self._inputcursormode is not None and self._inputcursorx is not None and self._inputcursory is not None:
-            x = self._inputcursorx # syntactic sugar
-            y = self._inputcursory # syntactic sugar
+            x = self._inputcursorx  # syntactic sugar
+            y = self._inputcursory  # syntactic sugar
 
             if not self.inputcursorblinking or int(time.time() * 2) % 2 == 0:
                 cellfgcolor, cellbgcolor = self.getdisplayedcolors(x, y)
 
                 if self._inputcursormode == 'underline':
                     # draw a simply underline cursor
-                    pygame.draw.rect(self._surfaceobj, cellfgcolor, (self._cellwidth * x + 2, self._cellheight * (y+1) - 3, self._cellwidth - 4, 3))
+                    pygame.draw.rect(self._surfaceobj, cellfgcolor,
+                                     (self._cellwidth * x + 2, self._cellheight * (y + 1) - 3, self._cellwidth - 4, 3))
                 elif self._inputcursormode == 'insert':
                     # draw a cursor that takes up about half the cell
-                    pygame.draw.rect(self._surfaceobj, cellfgcolor, (self._cellwidth * x + 2, self._cellheight * (y+1) - int(self._cellheight / 2.5), self._cellwidth - 4, int(self._cellheight / 2.5)))
+                    pygame.draw.rect(self._surfaceobj, cellfgcolor, (
+                        self._cellwidth * x + 2, self._cellheight * (y + 1) - int(self._cellheight / 2.5),
+                        self._cellwidth - 4, int(self._cellheight / 2.5)))
                 elif self._inputcursormode == 'box':
                     # draw the reverse the fg & bg colors of the cell (but don't actually modify the backend data)
                     # TODO - the following is copy pasta. Get rid of it when optimizing?
@@ -420,45 +453,49 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
                     charsurf = self._font.render(self._screenchar[x][y], 1, cellbgcolor, cellfgcolor)
                     charrect = charsurf.get_rect()
                     charrect.centerx = self._cellwidth * x + int(self._cellwidth / 2)
-                    charrect.bottom = self._cellheight * (y+1) # TODO - not correct, this would put stuff like g, p, q higher than normal.
+                    charrect.bottom = self._cellheight * (
+                            y + 1)  # TODO - not correct, this would put stuff like g, p, q higher than normal.
                     self._surfaceobj.blit(charsurf, charrect)
             else:
                 # need to blank out the cursor by simply redrawing the cell
                 self._repaintcell(x, y)
 
     def getdisplayedcolors(self, x, y):
-        """Returns the fg and bg colors of the given cell as pygame.Color objects, modified for the tint. If x and y is not on the surface, returns (None, None)"""
+        """Returns the fg and bg colors of the given cell as pygame.
+        Color objects, modified for the tint.
+        If x and y is not on the surface, returns (None, None)"""
 
         if x < 0 or y < 0 or x >= self._width or y >= self._height:
             return None, None
 
-        fgcolor = (self._screenfgcolor[x][y] is None) and (DEFAULTFGCOLOR) or (self._screenfgcolor[x][y])
-        bgcolor = (self._screenbgcolor[x][y] is None) and (DEFAULTBGCOLOR) or (self._screenbgcolor[x][y])
+        fgcolor = (self._screenfgcolor[x][y] is None) and DEFAULTFGCOLOR or (self._screenfgcolor[x][y])
+        bgcolor = (self._screenbgcolor[x][y] is None) and DEFAULTBGCOLOR or (self._screenbgcolor[x][y])
 
-        # NOTE - The ternary trick does work here, because the case where the wrong value of the two is used, both values are the same.
+        # NOTE - The ternary trick does work here,
+        # because the case where the wrong value of the two is used,
+        # both values are the same.
         rdelta = (self._screenRdelta[x][y] is not None) and (self._screenRdelta[x][y]) or (0)
         gdelta = (self._screenGdelta[x][y] is not None) and (self._screenGdelta[x][y]) or (0)
         bdelta = (self._screenBdelta[x][y] is not None) and (self._screenBdelta[x][y]) or (0)
-
 
         if rdelta or gdelta or bdelta:
             r, g, b, a = fgcolor.r, fgcolor.g, fgcolor.b, fgcolor.a
             r = getwithinrange(r + rdelta)
             g = getwithinrange(g + gdelta)
             b = getwithinrange(b + bdelta)
-            displayedfgcolor = pygame.Color(r, g, b, a)
+            displayedfgcolor = pygame.Color(r=r, g=g, b=b, a=a)
 
-            r, g, b, a = self._screenbgcolor[x][y].r, self._screenbgcolor[x][y].g, self._screenbgcolor[x][y].b, self._screenbgcolor[x][y].a
+            r, g, b, a = self._screenbgcolor[x][y].r, self._screenbgcolor[x][y].g, self._screenbgcolor[x][y].b, \
+                         self._screenbgcolor[x][y].a
             r = getwithinrange(r + rdelta)
             g = getwithinrange(g + gdelta)
             b = getwithinrange(b + bdelta)
-            displayedbgcolor = pygame.Color(r, g, b, a)
+            displayedbgcolor = pygame.Color(r=r, g=g, b=b, a=a)
         else:
             displayedfgcolor = fgcolor
             displayedbgcolor = bgcolor
 
         return displayedfgcolor, displayedbgcolor
-
 
     def _repaintcell(self, x, y):
         """Immediately updates the cell at xy. Use this method when you don't want to update the entire surface."""
@@ -473,16 +510,15 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         charsurf = self._font.render(self._screenchar[x][y], 1, cellfgcolor, cellbgcolor)
         charrect = charsurf.get_rect()
         charrect.centerx = self._cellwidth * x + int(self._cellwidth / 2)
-        charrect.bottom = self._cellheight * (y+1) # TODO - not correct, this would put stuff like g, p, q higher than normal.
+        charrect.bottom = self._cellheight * (
+                y + 1)  # TODO - not correct, this would put stuff like g, p, q higher than normal.
         self._surfaceobj.blit(charsurf, charrect)
 
-
-    _debugcolorkey = {(255,0,0): 'R',
-                      (0,255,0): 'G',
-                      (0,0,255): 'B',
-                      (0,0,0): 'b',
+    _debugcolorkey = {(255, 0, 0): 'R',
+                      (0, 255, 0): 'G',
+                      (0, 0, 255): 'B',
+                      (0, 0, 0): 'b',
                       (255, 255, 255): 'w'}
-
 
     def _debug(self, returnstr=False, fn=None):
         text = ['+' + ('-' * self._width) + '+\n']
@@ -498,18 +534,15 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         else:
             sys.stdout.write(''.join(text) + '\n')
 
-
     def _debugfgFn(self, x, y):
         r, g, b = self._screenfgcolor[x][y].r, self._screenfgcolor[x][y].g, self._screenfgcolor[x][y].b
         if (r, g, b) in PygcurseSurface._debugcolorkey:
             return PygcurseSurface._debugcolorkey[(r, g, b)]
         else:
-            return'.'
-
+            return '.'
 
     def _debugfg(self, returnstr=False):
         return self._debug(returnstr=returnstr, fn=self._debugfgFn)
-
 
     def _debugbgFn(self, x, y):
         r, g, b = self._screenbgcolor[x][y].r, self._screenbgcolor[x][y].g, self._screenbgcolor[x][y].b
@@ -518,10 +551,8 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         else:
             return '.'
 
-
     def _debugbg(self, returnstr=False):
         return self._debug(returnstr=returnstr, fn=self._debugbgFn)
-
 
     def _debugcharsFn(self, x, y):
         if self._screenchar[x][y] in (None, '\n', '\t'):
@@ -529,10 +560,8 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         else:
             return self._screenchar[x][y]
 
-
     def _debugchars(self, returnstr=False):
         return self._debug(returnstr=returnstr, fn=self._debugcharsFn)
-
 
     def _debugdirtyFn(self, x, y):
         if self._screendirty[x][y]:
@@ -540,21 +569,18 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         else:
             return '.'
 
-
     def _debugdirty(self, returnstr=False):
         return self._debug(returnstr=returnstr, fn=self._debugdirtyFn)
-
 
     def gettopleftpixel(self, cellx, celly=None, onscreen=True):
         """Return a tuple of the pixel coordinates of the cell at cellx, celly."""
         if type(cellx) in (tuple, list):
-            if type(celly) == bool: # shuffling around the parameters
+            if type(celly) == bool:  # shuffling around the parameters
                 onscreen = celly
             cellx, celly = cellx
         if onscreen and not self.isonscreen(cellx, celly):
             return (None, None)
         return (cellx * self._cellwidth, celly * self._cellheight)
-
 
     def gettoppixel(self, celly, onscreen=True):
         """Return the y pixel coordinate of the cells at row celly."""
@@ -562,13 +588,11 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
             return None
         return celly * self._cellheight
 
-
     def getleftpixel(self, cellx, onscreen=True):
         """Return the x pixel coordinate of the cells at column cellx."""
         if onscreen and (cellx < 0 or cellx >= self.width):
             return None
         return cellx * self._cellwidth
-
 
     def getcoordinatesatpixel(self, pixelx, pixely=None, onscreen=True):
         """
@@ -577,14 +601,14 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         Returns (None, None) if the pixel coordinates are not over the screen.
         """
         if type(pixelx) in (tuple, list):
-            if type(pixely) == bool: # shuffling around the parameters
+            if type(pixely) == bool:  # shuffling around the parameters
                 onscreen = pixely
             pixelx, pixely = pixelx
 
-        if onscreen and (pixelx < 0 or pixelx >= self._width * self._cellwidth) or (pixely < 0 or pixely >= self._height * self._cellheight):
+        if onscreen and (pixelx < 0 or pixelx >= self._width * self._cellwidth) or (
+                pixely < 0 or pixely >= self._height * self._cellheight):
             return (None, None)
         return int(pixelx / self._cellwidth), int(pixely / self._cellheight)
-
 
     def getcharatpixel(self, pixelx, pixely):
         """Returns the character in the cell located at the pixel coordinates pixelx, pixely."""
@@ -592,7 +616,6 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         if (x, y) == (None, None):
             return (None, None)
         return self._screenchar[x][y]
-
 
     def resize(self, newwidth=None, newheight=None, fgcolor=None, bgcolor=None):
         """
@@ -665,7 +688,6 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         elif self._autoupdate:
             self.update()
 
-
     def setfgcolor(self, fgcolor, region=None):
         """
         Sets the foreground color of a region of cells on this surface.
@@ -687,7 +709,6 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         if self._autoupdate:
             self.update()
 
-
     def setbgcolor(self, bgcolor, region=None):
         """
         Sets the background color of a region of cells on this surface.
@@ -696,7 +717,7 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         """
         if region == None:
             # TODO why fgcolor? have to check it out and fix it, temporary setting to whitesmoke
-            self._fgcolor = color.THECOLORS['whitesmoke'] # fgcolor
+            self._fgcolor = color.THECOLORS['whitesmoke']  # fgcolor
             return
 
         regionx, regiony, regionwidth, regionheight = self.getregion(region)
@@ -710,7 +731,6 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         if self._autoupdate:
             self.update()
 
-
     def reversecolors(self, region=None):
         """
         Reverse the foreground/background colors of a region of cells on this surface with each other.
@@ -721,29 +741,28 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
 
         for ix in range(regionx, regionx + regionwidth):
             for iy in range(regiony, regiony + regionheight):
-                self._screenfgcolor[ix][iy], self._screenbgcolor[ix][iy] = self._screenbgcolor[ix][iy], self._screenfgcolor[ix][iy]
+                self._screenfgcolor[ix][iy], self._screenbgcolor[ix][iy] = self._screenbgcolor[ix][iy], \
+                                                                           self._screenfgcolor[ix][iy]
                 self._screendirty[ix][iy] = True
         if self._autoupdate:
             self.update()
 
-
     def _invertfg(self, x, y):
         # NOTE - This function does not set the dirty flag.
         fgcolor = self._screenfgcolor[x][y]
-        invR, invG, invB = 255 - fgcolor.r, 255 - fgcolor.g, 255 - fgcolor.b
-        self._screenfgcolor[x][y] = pygame.Color(invR, invG, invB, fgcolor.a)
-
+        inv_r, inv_g, inv_b = 255 - fgcolor.r, 255 - fgcolor.g, 255 - fgcolor.b
+        self._screenfgcolor[x][y] = pygame.Color(inv_r, inv_g, inv_b, fgcolor.a)
 
     def _invertbg(self, x, y):
         # NOTE - This function does not set the dirty flag.
         bgcolor = self._screenbgcolor[x][y]
-        invR, invG, invB = 255 - bgcolor.r, 255 - bgcolor.g, 255 - bgcolor.b
-        self._screenbgcolor[x][y] = pygame.Color(invR, invG, invB, bgcolor.a)
-
+        inv_r, inv_g, inv_b = 255 - bgcolor.r, 255 - bgcolor.g, 255 - bgcolor.b
+        self._screenbgcolor[x][y] = pygame.Color(inv_r, inv_g, inv_b, bgcolor.a)
 
     def invertcolors(self, region=None):
         """
-        Invert the colors of a region of cells on this surface. (For example, black and white are inverse of each other, as are blue and yellow.)
+        Invert the colors of a region of cells on this surface.
+        (For example, black and white are inverse of each other, as are blue and yellow.)
         """
         regionx, regiony, regionwidth, regionheight = self.getregion(region)
         if (regionx, regiony, regionwidth, regionheight) == (None, None, None, None):
@@ -756,7 +775,6 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
                 self._screendirty[ix][iy] = True
         if self._autoupdate:
             self.update()
-
 
     def invertfgcolor(self, region=None):
         """
@@ -773,7 +791,6 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         if self._autoupdate:
             self.update()
 
-
     def invertbgcolor(self, region=None):
         """
         Invert the background color of a region of cells on this surface. (For example, black and white are inverse of each other, as are blue and yellow.)
@@ -789,16 +806,18 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         if self._autoupdate:
             self.update()
 
-
-    def paste(self, srcregion=None, dstsurf=None, dstregion=None, pastechars=True, pastefgcolor=True, pastebgcolor=True, pasteredtint=True, pastegreentint=True, pastebluetint=True):
+    def paste(self, srcregion=None, dstsurf=None, dstregion=None, pastechars=True, pastefgcolor=True, pastebgcolor=True,
+              pasteredtint=True, pastegreentint=True, pastebluetint=True):
         srcx, srcy, srcwidth, srcheight = self.getregion(srcregion)
         if (srcx, srcy, srcwidth, srcheight) == (None, None, None, None):
             return
 
         if dstsurf is None:
             # Create a new PygcurseSurface to paste to.
-            dstsurf = PygcurseSurface(srcwidth, srcheight, font=self._font, fgcolor=self._fgcolor, bgcolor=self._bgcolor)
-        elif dstsurf._pygcurseClass not in ('PygcurseSurface', 'PygcurseWindow'): # TODO - is this the right way to do this?
+            dstsurf = PygcurseSurface(srcwidth, srcheight, font=self._font, fgcolor=self._fgcolor,
+                                      bgcolor=self._bgcolor)
+        elif dstsurf._pygcurseClass not in (
+                'PygcurseSurface', 'PygcurseWindow'):  # TODO - is this the right way to do this?
             return
 
         dstx, dsty, dstwidth, dstheight = dstsurf.getregion(dstregion)
@@ -836,18 +855,16 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         if dstsurf._autoupdate:
             dstsurf.update()
 
-
     def pastechars(self, srcregion=None, dstsurf=None, dstregion=None):
         return self.paste(srcregion, dstsurf, dstregion, True, False, False, False, False, False)
-
 
     def pastecolor(self, srcregion=None, dstsurf=None, dstregion=None, pastefgcolor=True, pastebgcolor=True):
         return self.paste(srcregion, dstsurf, dstregion, False, pastefgcolor, pastebgcolor, False, False, False)
 
-
-    def pastetint(self, srcregion=None, dstsurf=None, dstregion=None, pasteredtint=True, pastegreentint=True, pastebluetint=True):
-        return self.paste(srcregion, dstsurf, dstregion, False, False, False, pasteredtint, pastegreentint, pastebluetint)
-
+    def pastetint(self, srcregion=None, dstsurf=None, dstregion=None, pasteredtint=True, pastegreentint=True,
+                  pastebluetint=True):
+        return self.paste(srcregion, dstsurf, dstregion, False, False, False, pasteredtint, pastegreentint,
+                          pastebluetint)
 
     def lighten(self, amount=51, region=None):
         """
@@ -859,7 +876,6 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         # NOTE - I chose 51 for the default amount because 51 is a fifth of 255.
         self.tint(amount, amount, amount, region)
 
-
     def darken(self, amount=51, region=None):
         """
         Adds a darkening tint to the region specified.
@@ -867,7 +883,6 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         - amount is the amount to darken by. When the lightening is at -255, the cell will be completely black. A negative amount argument has the same effect as calling lighten().
         """
         self.tint(-amount, -amount, -amount, region)
-
 
     def addshadow(self, amount=51, region=None, offset=None, direction=None, xoffset=1, yoffset=1):
         """
@@ -906,15 +921,15 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         if yoffset < 0 and (-width < xoffset < width):
             self.darken(amount, (x + getwithinrange(xoffset, 0, width),
                                  y + yoffset,
-                                 width-abs(xoffset),
+                                 width - abs(xoffset),
                                  min(abs(yoffset), height)))
 
         # south shadow
         if yoffset > 0 and (-width < xoffset < width):
             self.darken(amount, (x + getwithinrange(xoffset, 0, width),
-                            y+max(yoffset, height),
-                            width-abs(xoffset),
-                            min(abs(yoffset), height)))
+                                 y + max(yoffset, height),
+                                 width - abs(xoffset),
+                                 min(abs(yoffset), height)))
 
         # west shadow
         if xoffset < 0 and (-height < yoffset < height):
@@ -958,7 +973,6 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
                                  getwithinrange(abs(xoffset), 0, width),
                                  getwithinrange(abs(yoffset), 0, height)))
 
-
     def tint(self, r=0, g=0, b=0, region=None):
         """
         Adjust the red, green, and blue tint of the cells in the specified region.
@@ -986,7 +1000,6 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         """
         self.settint(amount, amount, amount, region)
 
-
     def settint(self, r=0, g=0, b=0, region=None):
         """
         Set the brightness level of a region of cells. The r, g, and b parameters are the amount of red, green, and blue tint used for the region of cells. 0 is no tint at all, whereas 255 is maximum tint and -255 is maximum removal of that color.
@@ -1011,7 +1024,6 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
             return None
         return self._screenchar[x][y]
 
-
     def getchars(self, region=None, gapChar=' '):
         """
         Returns the a list of the characters in the specified region. Each item in the list is a string of the rows of characters.
@@ -1032,7 +1044,6 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
                     line.append(self._screenchar[ix][iy])
             lines.append(''.join(line))
         return lines
-
 
     def putchar(self, char, x=None, y=None, fgcolor=None, bgcolor=None):
         """
@@ -1065,7 +1076,6 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
 
         return char
 
-
     def putchars(self, chars, x=None, y=None, fgcolor=None, bgcolor=None, indent=False):
         # doc - does not modify the cursor. That's how putchars is different from print() or write()
         # doc - also, putchars does wrap but doesn't cause scrolls. (if you want a single line, just put putchar() calls in a loop)
@@ -1094,7 +1104,7 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
                 tempcurx = indent and x or 0
                 tempcury += 1
                 continue
-            if tempcury >= self._height: # putchars() does not cause a scroll.
+            if tempcury >= self._height:  # putchars() does not cause a scroll.
                 break
 
             self._screenchar[tempcurx][tempcury] = ch
@@ -1107,7 +1117,6 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
 
         if self._autoupdate:
             self.update()
-
 
     def setscreencolors(self, fgcolor=None, bgcolor=None, clear=False):
         """
@@ -1125,22 +1134,19 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         self.fill(char, fgcolor, bgcolor)
         self.setbrightness()
 
-
     def erase(self, region=None):
-        self.fill(None, None, None, region)
-
+        self.fill("", None, None, region)
 
     def paint(self, x, y, bgcolor=None):
         self.putchar(' ', x, y, None, bgcolor)
-
 
     def fill(self, char=' ', fgcolor=None, bgcolor=None, region=None):
         x, y, width, height = self.getregion(region)
         if (x, y, width, height) == (None, None, None, None):
             return
 
-        fgcolor = (fgcolor is not None) and (getpygamecolor(fgcolor)) or (self._fgcolor)
-        bgcolor = (bgcolor is not None) and (getpygamecolor(bgcolor)) or (self._bgcolor)
+        fgcolor = (fgcolor is not None) and (getpygamecolor(fgcolor)) or self._fgcolor
+        bgcolor = (bgcolor is not None) and (getpygamecolor(bgcolor)) or self._bgcolor
 
         for ix in range(x, x + width):
             for iy in range(y, y + height):
@@ -1155,26 +1161,24 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         if self._autoupdate:
             self.update()
 
-
     def _scroll(self):
         """Scroll the content of the entire screen up one row. This is done when characters are printed to the screen that go past the end of the last row."""
         for x in range(self._width):
             for y in range(self._height - 1):
-                self._screenchar[x][y] = self._screenchar[x][y+1]
-                self._screenfgcolor[x][y] = self._screenfgcolor[x][y+1]
-                self._screenbgcolor[x][y] = self._screenbgcolor[x][y+1]
-                self._screenRdelta[x][y] = self._screenRdelta[x][y+1]
-                self._screenGdelta[x][y] = self._screenGdelta[x][y+1]
-                self._screenBdelta[x][y] = self._screenBdelta[x][y+1]
-            self._screenchar[x][self._height-1] = ' ' # bottom row is blanked
-            self._screenfgcolor[x][self._height-1] = self._fgcolor
-            self._screenbgcolor[x][self._height-1] = self._bgcolor
-            self._screenRdelta[x][self._height-1] = self._rdelta
-            self._screenGdelta[x][self._height-1] = self._gdelta
-            self._screenBdelta[x][self._height-1] = self._bdelta
+                self._screenchar[x][y] = self._screenchar[x][y + 1]
+                self._screenfgcolor[x][y] = self._screenfgcolor[x][y + 1]
+                self._screenbgcolor[x][y] = self._screenbgcolor[x][y + 1]
+                self._screenRdelta[x][y] = self._screenRdelta[x][y + 1]
+                self._screenGdelta[x][y] = self._screenGdelta[x][y + 1]
+                self._screenBdelta[x][y] = self._screenBdelta[x][y + 1]
+            self._screenchar[x][self._height - 1] = ' '  # bottom row is blanked
+            self._screenfgcolor[x][self._height - 1] = self._fgcolor
+            self._screenbgcolor[x][self._height - 1] = self._bgcolor
+            self._screenRdelta[x][self._height - 1] = self._rdelta
+            self._screenGdelta[x][self._height - 1] = self._gdelta
+            self._screenBdelta[x][self._height - 1] = self._bdelta
         self._screendirty = [[True] * self._height for i in range(self._width)]
         self._scrollcount += 1
-
 
     def getregion(self, region=None, truncate=True):
         if region is None:
@@ -1205,19 +1209,17 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         if y + height > self._height:
             height -= (y + height) - self._height
         if x < 0:
-            width += x # subtracts, since x is negative
+            width += x  # subtracts, since x is negative
             x = 0
         if y < 0:
-            height += y # subtracts, since y is negative
+            height += y  # subtracts, since y is negative
             y = 0
 
         return x, y, width, height
 
-
     def isonscreen(self, x, y):
         """Returns True if the given xy cell coordinates are on the PygcurseSurface object, otherwise False."""
         return x >= 0 and y >= 0 and x < self.width and y < self.height
-
 
     def writekeyevent(self, keyevent, x=None, y=None, fgcolor=None, bgcolor=None):
         """
@@ -1234,7 +1236,6 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         if char is not None:
             self.putchar(char, x=x, y=y, fgcolor=fgcolor, bgcolor=bgcolor)
 
-
     # File-like Object methods:
     def write(self, text, x=None, y=None, fgcolor=None, bgcolor=None):
         if x is not None:
@@ -1247,21 +1248,20 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
 
         # TODO - we can calculate in advance what how many scrolls to do.
 
-
         # replace tabs with appropriate number of spaces
         tempcursorx = self._cursorx - 1
         for i, ch in enumerate(text):
             if ch == '\n':
                 tempcursorx = 0
             elif ch == '\t':
-                numspaces = self._tabsize - ((i+1) + tempcursorx % self._tabsize)
+                numspaces = self._tabsize - ((i + 1) + tempcursorx % self._tabsize)
                 if tempcursorx + numspaces >= self._width:
                     # tabbed past the edge, just go to first
                     # TODO - this doesn't work at all.
-                    text = text[:i] + (' ' * (self._width - tempcursorx + 1)) + text[i+1:]
+                    text = text[:i] + (' ' * (self._width - tempcursorx + 1)) + text[i + 1:]
                     tempcursorx += (self._width - tempcursorx + 1)
                 else:
-                    text = text[:i] + (' ' * numspaces) + text[i+1:]
+                    text = text[:i] + (' ' * numspaces) + text[i + 1:]
                     tempcursorx += numspaces
             else:
                 tempcursorx += getcharwidth(ch)
@@ -1284,7 +1284,8 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         """
 
         for ch in text:
-            if ch in ('\n', '\r'): # TODO - wait, this isn't right. We should be ignoring one of these newlines. Otherwise \r\n shows up as two newlines.
+            if ch in ('\n',
+                      '\r'):  # TODO - wait, this isn't right. We should be ignoring one of these newlines. Otherwise \r\n shows up as two newlines.
                 self._cursory += 1
                 self._cursorx = 0
             else:
@@ -1323,15 +1324,12 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         if self._autoupdate:
             self.update()
 
-
-    def read(self): # TODO - this isn't right.
+    def read(self):  # TODO - this isn't right.
         return '\n'.join(self.getchars())
-
 
     # Properties:
     def _propgetcursorx(self):
         return self._cursorx
-
 
     def _propsetcursorx(self, value):
         """
@@ -1344,17 +1342,15 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         """
         x = int(value)
         if x >= self._width or x <= -self._width:
-            return # no-op
+            return  # no-op
 
         if x < 0:
             x = self._width + x
 
         self._cursorx = x
 
-
     def _propgetcursory(self):
         return self._cursory
-
 
     def _propsetcursory(self, value):
         """
@@ -1367,17 +1363,15 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         """
         y = int(value)
         if y >= self._height or y <= -self._height:
-            return # no-op
+            return  # no-op
 
         if y < 0:
             y = self._height + y
 
         self._cursory = y
 
-
     def _propgetcursor(self):
         return (self._cursorx, self._cursory)
-
 
     def _propsetcursor(self, value):
         x = int(value[0])
@@ -1387,10 +1381,8 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         self._cursorx = x
         self._cursory = y
 
-
     def _propgetinputcursor(self):
         return (self._inputcursorx, self._inputcursory)
-
 
     def _propsetinputcursor(self, value):
         x = int(value[0])
@@ -1398,14 +1390,12 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         if not self.isonscreen(x, y):
             return
         if x != self._inputcursorx or y != self._inputcursory:
-            self._repaintcell(self._inputcursorx, self._inputcursory) # blank out the old cursor position
+            self._repaintcell(self._inputcursorx, self._inputcursory)  # blank out the old cursor position
         self._inputcursorx = x
         self._inputcursory = y
 
-
     def _propgetinputcursormode(self):
         return self._inputcursormode
-
 
     def _propsetinputcursormode(self, value):
         if value in (None, 'underline', 'insert', 'box'):
@@ -1417,72 +1407,60 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         else:
             self._inputcursormode = None
 
-
     def _propgetfont(self):
         return self._font
 
-
     def _propsetfont(self, value):
-        self._font = value # TODO - a lot of this code is copy/paste
+        self._font = value  # TODO - a lot of this code is copy/paste
         self._cellwidth, self._cellheight = calcfontsize(self._font)
         if self._managesdisplay and self._fullscreen:
-            self._windowsurface = pygame.display.set_mode((self._cellwidth * self.width, self._cellheight * self.height), pygame.FULLSCREEN)
+            self._windowsurface = pygame.display.set_mode(
+                (self._cellwidth * self.width, self._cellheight * self.height), pygame.FULLSCREEN)
         elif self._managesdisplay:
-            self._windowsurface = pygame.display.set_mode((self._cellwidth * self.width, self._cellheight * self.height))
+            self._windowsurface = pygame.display.set_mode(
+                (self._cellwidth * self.width, self._cellheight * self.height))
         self._pixelwidth = self._width * self._cellwidth
         self._pixelheight = self._height * self._cellheight
         self._surfaceobj = pygame.Surface((self._pixelwidth, self._pixelheight))
-        self._surfaceobj = self._surfaceobj.convert_alpha() # TODO - This is needed for erasing, but does this have a performance hit?
+        self._surfaceobj = self._surfaceobj.convert_alpha()  # TODO - This is needed for erasing, but does this have a performance hit?
         self._screendirty = [[True] * self._height for i in range(self._width)]
 
         if self._autoupdate:
             self.update()
 
-
     def _propgetfgcolor(self):
         return self._fgcolor
-
 
     def _propsetfgcolor(self, value):
         self._fgcolor = getpygamecolor(value)
 
-
     def _propgetbgcolor(self):
         return self._bgcolor
-
 
     def _propsetbgcolor(self, value):
         self._bgcolor = getpygamecolor(value)
 
-
     def _propgetcolors(self):
         return (self._fgcolor, self._bgcolor)
-
 
     def _propsetcolors(self, value):
         self._fgcolor = getpygamecolor(value[0])
         self._bgcolor = getpygamecolor(value[1])
 
-
     def _propgetautoupdate(self):
         return self._autoupdate
-
 
     def _propsetautoupdate(self, value):
         self._autoupdate = bool(value)
 
-
     def _propgetautoblit(self):
         return self._autoblit
-
 
     def _propsetautoblit(self, value):
         self._autoblit = bool(value)
 
-
     def _propgetautodisplayupdate(self):
         return self._autodisplayupdate
-
 
     def _propsetautodisplayupdate(self, value):
         if self._windowsurface is not None:
@@ -1491,30 +1469,24 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
             # TODO - this should be a raised exception, not an assertion.
             assert False, 'Window Surface object must be set to a surface before autodisplayupdate can be enabled.'
 
-
     def _propgetheight(self):
         return self._height
-
 
     def _propsetheight(self, value):
         newheight = int(value)
         if newheight != self._height:
             self.resize(newheight=newheight)
 
-
     def _propgetwidth(self):
         return self._width
-
 
     def _propsetwidth(self, value):
         newwidth = int(value)
         if newwidth != self._width:
             self.resize(newwidth=newwidth)
 
-
     def _propgetsize(self):
         return (self._width, self._height)
-
 
     def _propsetsize(self, value):
         newwidth = int(value[0])
@@ -1522,30 +1494,24 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         if newwidth != self._width or newheight != self._height:
             self.resize(newwidth, newheight)
 
-
     def _propgetpixelwidth(self):
         return self._width * self._cellwidth
-
 
     def _propsetpixelwidth(self, value):
         newwidth = int(int(value) / self._cellwidth)
         if newwidth != self._width:
             self.resize(newwidth=newwidth)
 
-
     def _propgetpixelheight(self):
         return self._height * self._cellheight
-
 
     def _propsetpixelheight(self, value):
         newheight = int(int(value) / self._cellheight)
         if newheight != self._height:
             self.resize(newheight=newheight)
 
-
     def _propgetpixelsize(self):
-        return (self._width * self._cellwidth, self._height * self._cellheight)
-
+        return self._width * self._cellwidth, self._height * self._cellheight
 
     def _propsetpixelsize(self, value):
         newwidth = int(int(value) / self._cellwidth)
@@ -1553,140 +1519,116 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
         if newwidth != self._width or newheight != self._height:
             self.resize(newwidth, newheight)
 
-
     def _propgetcellwidth(self):
         return self._cellwidth
-
 
     def _propgetcellheight(self):
         return self._cellheight
 
-
     def _propgetcellsize(self):
-        return (self._cellwidth, self._cellheight)
-
+        return self._cellwidth, self._cellheight
 
     def _propgetsurface(self):
         return self._surfaceobj
 
-
     def _propgetleft(self):
         return 0
 
-
     def _propgetright(self):
-        return self._width - 1 # note: this behavior is different from pygame Rect objects, which do not have the -1.
-
+        return self._width - 1  # note: this behavior is different from pygame Rect objects, which do not have the -1.
 
     def _propgettop(self):
         return 0
 
-
     def _propgetbottom(self):
-        return self._height - 1 # note: this behavior is different from pygame Rect objects, which do not have the -1.
-
+        return self._height - 1  # note: this behavior is different from pygame Rect objects, which do not have the -1.
 
     def _propgetcenterx(self):
         return int(self._width / 2)
 
-
     def _propgetcentery(self):
         return int(self._height / 2)
 
-
     def _propgetcenter(self):
-        return (int(self._width / 2), int(self._height / 2))
-
+        return int(self._width / 2), int(self._height / 2)
 
     def _propgettopleft(self):
-        return (0, 0)
-
+        return 0, 0
 
     def _propgettopright(self):
-        return (self._width - 1, 0)
-
+        return self._width - 1, 0
 
     def _propgetbottomleft(self):
-        return (0, self._height - 1)
-
+        return 0, self._height - 1
 
     def _propgetbottomright(self):
-        return (self._width - 1, self._height - 1)
-
+        return self._width - 1, self._height - 1
 
     def _propgetmidleft(self):
-        return (0, int(self._height / 2))
-
+        return 0, int(self._height / 2)
 
     def _propgetmidright(self):
-        return (self._width - 1, int(self._height / 2))
-
+        return self._width - 1, int(self._height / 2)
 
     def _propgetmidtop(self):
-        return (int(self._width / 2), 0)
-
+        return int(self._width / 2), 0
 
     def _propgetmidbottom(self):
-        return (int(self._width / 2), self._height - 1)
-
+        return int(self._width / 2), self._height - 1
 
     def _propgetrect(self):
         return pygame.Rect(0, 0, self._width, self._height)
 
-
     def _propgetpixelrect(self):
         return pygame.Rect(0, 0, self._width * self._cellwidth, self._height * self._cellheight)
-
 
     def _propgettabsize(self):
         return self._fgcolor
 
-
     def _propsettabsize(self, value):
         self._tabsize = max(1, int(value))
 
-
-    cursorx           = property(_propgetcursorx, _propsetcursorx)
-    cursory           = property(_propgetcursory, _propsetcursory)
-    cursor            = property(_propgetcursor, _propsetcursor)
-    inputcursor       = property(_propgetinputcursor, _propsetinputcursor)
-    inputcursormode   = property(_propgetinputcursormode, _propsetinputcursormode)
-    fgcolor           = property(_propgetfgcolor, _propsetfgcolor)
-    bgcolor           = property(_propgetbgcolor, _propsetbgcolor)
-    colors            = property(_propgetcolors, _propsetcolors)
-    autoupdate        = property(_propgetautoupdate, _propsetautoupdate)
-    autoblit          = property(_propgetautoblit, _propsetautoblit)
+    cursorx = property(_propgetcursorx, _propsetcursorx)
+    cursory = property(_propgetcursory, _propsetcursory)
+    cursor = property(_propgetcursor, _propsetcursor)
+    inputcursor = property(_propgetinputcursor, _propsetinputcursor)
+    inputcursormode = property(_propgetinputcursormode, _propsetinputcursormode)
+    fgcolor = property(_propgetfgcolor, _propsetfgcolor)
+    bgcolor = property(_propgetbgcolor, _propsetbgcolor)
+    colors = property(_propgetcolors, _propsetcolors)
+    autoupdate = property(_propgetautoupdate, _propsetautoupdate)
+    autoblit = property(_propgetautoblit, _propsetautoblit)
     autodisplayupdate = property(_propgetautodisplayupdate, _propsetautodisplayupdate)
-    width             = property(_propgetwidth, _propsetwidth)
-    height            = property(_propgetheight, _propsetheight)
-    size              = property(_propgetsize, _propsetsize)
-    pixelwidth        = property(_propgetpixelwidth, _propsetpixelwidth)
-    pixelheight       = property(_propgetpixelheight, _propsetpixelheight)
-    pixelsize         = property(_propgetpixelsize, _propsetpixelsize)
-    font              = property(_propgetfont, _propsetfont)
-    cellwidth         = property(_propgetcellwidth, None) # Set func will be in VER2
-    cellheight        = property(_propgetcellheight, None) # Set func will be in VER2
-    cellsize          = property(_propgetcellsize, None) # Set func will be in VER2
-    surface           = property(_propgetsurface, None)
-    tabsize           = property(_propgettabsize, _propsettabsize)
+    width = property(_propgetwidth, _propsetwidth)
+    height = property(_propgetheight, _propsetheight)
+    size = property(_propgetsize, _propsetsize)
+    pixelwidth = property(_propgetpixelwidth, _propsetpixelwidth)
+    pixelheight = property(_propgetpixelheight, _propsetpixelheight)
+    pixelsize = property(_propgetpixelsize, _propsetpixelsize)
+    font = property(_propgetfont, _propsetfont)
+    cellwidth = property(_propgetcellwidth, None)  # Set func will be in VER2
+    cellheight = property(_propgetcellheight, None)  # Set func will be in VER2
+    cellsize = property(_propgetcellsize, None)  # Set func will be in VER2
+    surface = property(_propgetsurface, None)
+    tabsize = property(_propgettabsize, _propsettabsize)
 
-    left        = property(_propgetleft, None)
-    right       = property(_propgetright, None) # TODO - need set functions for properties that cause a resize
-    top         = property(_propgettop, None)
-    bottom      = property(_propgetbottom, None)
-    centerx     = property(_propgetcenterx, None)
-    centery     = property(_propgetcentery, None)
-    center      = property(_propgetcenter, None)
-    topleft     = property(_propgettopleft, None)
-    topright    = property(_propgettopright, None)
-    bottomleft  = property(_propgetbottomleft, None)
+    left = property(_propgetleft, None)
+    right = property(_propgetright, None)  # TODO - need set functions for properties that cause a resize
+    top = property(_propgettop, None)
+    bottom = property(_propgetbottom, None)
+    centerx = property(_propgetcenterx, None)
+    centery = property(_propgetcentery, None)
+    center = property(_propgetcenter, None)
+    topleft = property(_propgettopleft, None)
+    topright = property(_propgettopright, None)
+    bottomleft = property(_propgetbottomleft, None)
     bottomright = property(_propgetbottomright, None)
-    midleft     = property(_propgetmidleft, None)
-    midright    = property(_propgetmidright, None)
-    midtop      = property(_propgetmidtop, None)
-    midbottom   = property(_propgetmidbottom, None)
-    rect        = property(_propgetrect, None)
-    pixelrect   = property(_propgetpixelrect, None)
+    midleft = property(_propgetmidleft, None)
+    midright = property(_propgetmidright, None)
+    midtop = property(_propgetmidtop, None)
+    midbottom = property(_propgetmidbottom, None)
+    rect = property(_propgetrect, None)
+    pixelrect = property(_propgetpixelrect, None)
 
     """
     TODO - ideas for new properties (are these worth it?)
@@ -1725,9 +1667,9 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
             ystep = -1
         xdelta = x1 - x0
         ydelta = abs(y1 - y0)
-        error = -xdelta / 2 # TODO - float div or int div?
+        error = -xdelta / 2  # TODO - float div or int div?
         y = y0
-        for x in range(x0, x1+1): # +1 to include x1 in the range
+        for x in range(x0, x1 + 1):  # +1 to include x1 in the range
             if isSteep:
                 self.putchar(char, y, x, fgcolor, bgcolor)
             else:
@@ -1737,7 +1679,6 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
             if error > 0:
                 y = y + ystep
                 error = error - xdelta
-
 
     def drawlines(self, pointlist, closed=False, char=' ', fgcolor=None, bgcolor=None):
         if len(pointlist) < 2:
@@ -1751,28 +1692,26 @@ def pygprint(self, obj='', *objs, sep=' ', end='\n', fgcolor=None, bgcolor=None,
 class PygcurseWindow(PygcurseSurface):
     _pygcurseClass = 'PygcurseWindow'
 
-    def __init__(self, width=80, height=25, caption=None, font=None, fgcolor=DEFAULTFGCOLOR, bgcolor=DEFAULTBGCOLOR, fullscreen=False):
+    def __init__(self, width=80, height=25, caption=None, font=None, fgcolor=DEFAULTFGCOLOR, bgcolor=DEFAULTBGCOLOR,
+                 fullscreen=False):
         pygame.init()
         self._fullscreen = fullscreen
         fullscreen = fullscreen and FULLSCREEN or _NEW_WINDOW
         if RUNNING_ON_PYTHON2:
-            super(PygcurseWindow, self).__init__(width, height, font, fgcolor, bgcolor, fullscreen) # for Python 2
+            super(PygcurseWindow, self).__init__(width, height, font, fgcolor, bgcolor, fullscreen)  # for Python 2
         else:
-            super().__init__(width, height, font, fgcolor, bgcolor, fullscreen) # for Python 3 and later
+            super().__init__(width, height, font, fgcolor, bgcolor, fullscreen)  # for Python 3 and later
         if caption is not None:
             pygame.display.set_caption(caption)
 
-
-    def blittowindow(self, dest=(0,0), displayupdate=True):
+    def blittowindow(self, dest=(0, 0), displayupdate=True):
         retval = self._windowsurface.blit(self._surfaceobj, dest)
         if displayupdate:
             pygame.display.update()
         return retval
 
-
     def _propgetfullscreen(self):
         return self._fullscreen
-
 
     def _propsetfullscreen(self, value):
         if value and not self._fullscreen:
@@ -1794,13 +1733,13 @@ class PygcurseInput():
     The design of this class is that it is meant to be polled. It does not use callbacks or multithreading or an event loop.
     """
 
-
-    def __init__(self, pygsurf=None, prompt='', x=None, y=None, maxlength=None, fgcolor=None, bgcolor=None, promptfgcolor=None, promptbgcolor=None, whitelistchars=None, blacklistchars=None):
+    def __init__(self, pygsurf=None, prompt='', x=None, y=None, maxlength=None, fgcolor=None, bgcolor=None,
+                 promptfgcolor=None, promptbgcolor=None, whitelistchars=None, blacklistchars=None):
         self.buffer = []
         self.prompt = prompt
         self.pygsurf = pygsurf
         if maxlength is None and pygsurf is None:
-            self._maxlength = 4094 # NOTE - Python's input()/raw_input() functions let you enter at most 4094 characters. PygcurseInput has this as a default unless you specify otherwise
+            self._maxlength = 4094  # NOTE - Python's input()/raw_input() functions let you enter at most 4094 characters. PygcurseInput has this as a default unless you specify otherwise
         elif maxlength is None and x is not None and y is not None:
             self._maxlength = pygsurf.width - x
         else:
@@ -1808,10 +1747,10 @@ class PygcurseInput():
         self.cursor = 0
         self.showCursor = True
         self.blinkingCursor = True
-        self.eraseBufferSize = None # when set to None, nothing needs to be erased. When the buffer decreases in size, we need to remember how big it was so that we can paint blank space characters.
+        self.eraseBufferSize = None  # when set to None, nothing needs to be erased. When the buffer decreases in size, we need to remember how big it was so that we can paint blank space characters.
 
         self.insertMode = False
-        self.done = False # when True, the enter key has been pressed.
+        self.done = False  # when True, the enter key has been pressed.
 
         if pygsurf is not None:
             if x is None:
@@ -1842,23 +1781,22 @@ class PygcurseInput():
         self.whitelistchars = whitelistchars
         self.blacklistchars = blacklistchars
 
-        self.multiline = True # if True, then wrap to next line (scrolling the PygcurseSurface if needed.)
+        self.multiline = True  # if True, then wrap to next line (scrolling the PygcurseSurface if needed.)
 
-        self.KEYMAPPING = {K_LEFT:      self.leftarrow,
-                           K_RIGHT:     self.rightarrow,
-                           K_HOME:      self.home,
-                           K_END:       self.end,
+        self.KEYMAPPING = {K_LEFT: self.leftarrow,
+                           K_RIGHT: self.rightarrow,
+                           K_HOME: self.home,
+                           K_END: self.end,
                            K_BACKSPACE: self.backspace,
-                           K_DELETE:    self.delete,
-                           K_INSERT:    self.insert}
+                           K_DELETE: self.delete,
+                           K_INSERT: self.insert}
 
-        if pygsurf._pygcurseClass == 'PygcurseWindow': # TODO - need a better way to identify the object
+        if pygsurf._pygcurseClass == 'PygcurseWindow':  # TODO - need a better way to identify the object
             self.pygsurface = pygsurf.surface
-        elif pygsurf._pygcurseClass == 'PygcurseSurface': # TODO - need a better way to identify the object
+        elif pygsurf._pygcurseClass == 'PygcurseSurface':  # TODO - need a better way to identify the object
             self.pygsurface = pygsurf
         else:
             raise Exception('Invalid argument passed for pygsurf parameter.')
-
 
     def updateerasebuffersize(self):
         """
@@ -1868,7 +1806,6 @@ class PygcurseInput():
         if self.eraseBufferSize is None or len(self.buffer) > self.eraseBufferSize:
             self.eraseBufferSize = len(self.buffer)
 
-
     def backspace(self):
         """Perform the action that happens when the backspac key is pressed."""
         if self.cursor == 0:
@@ -1877,11 +1814,9 @@ class PygcurseInput():
         self.updateerasebuffersize()
         del self.buffer[self.cursor]
 
-
     def insert(self):
         """Perform the action that happens when the insert key is pressed."""
         self.insertMode = not self.insertMode
-
 
     def delete(self):
         """Perform the action that happens when the delete key is pressed."""
@@ -1890,28 +1825,23 @@ class PygcurseInput():
         self.updateerasebuffersize()
         del self.buffer[self.cursor]
 
-
     def home(self):
         """Perform the action that happens when the home key is pressed."""
         self.cursor = 0
 
-
     def end(self):
         """Perform the action that happens when the end key is pressed."""
         self.cursor = len(self.buffer)
-
 
     def leftarrow(self):
         """Perform the action that happens when the left arrow key is pressed."""
         if self.cursor > 0:
             self.cursor -= 1
 
-
     def rightarrow(self):
         """Perform the action that happens when the right arrow key is pressed."""
         if self.cursor < len(self.buffer):
             self.cursor += 1
-
 
     def paste(self, text):
         """
@@ -1919,7 +1849,8 @@ class PygcurseInput():
         """
         text = unicode(text)
         if not self.insertMode and len(text) + len(self.buffer) > self._maxlength:
-            text = text[:self._maxlength - len(self.buffer)] # truncate the pasted text (this is what web browsers do, so I'm copying that behavior)
+            text = text[:self._maxlength - len(
+                self.buffer)]  # truncate the pasted text (this is what web browsers do, so I'm copying that behavior)
 
         if self.cursor == len(self.buffer):
             # append to end
@@ -1934,14 +1865,14 @@ class PygcurseInput():
             else:
                 self.buffer = self.buffer[:self.cursor] + list(text) + self.buffer[self.cursor:]
 
-
     def update(self, pygsurfObj=None):
         """
         Draw the PygcurseInput object to the PygcurseSurface object associated with it (in the self.pygsurf member) or to the pygsurfObj argument.
 
         This method handles drawing the prompt, typed in text, and cursor of this object.
         """
-        if pygsurfObj is not None and pygsurfObj._pygcurseClass in ('PygcurseWindow', 'PygcurseSurface'): # TODO - need a better way to identify the object
+        if pygsurfObj is not None and pygsurfObj._pygcurseClass in (
+                'PygcurseWindow', 'PygcurseSurface'):  # TODO - need a better way to identify the object
             pygsurfObj = pygsurfObj.surface
         elif self.pygsurf is not None:
             pygsurfObj = self.pygsurf
@@ -1958,36 +1889,37 @@ class PygcurseInput():
             if self.eraseBufferSize is not None:
                 # need to blank out the previous drawn, longer string.
                 pygsurfObj.write(self.prompt + (' ' * self.eraseBufferSize))
-                pygsurfObj.popcursor() # revert to the original cursor before proceeding
+                pygsurfObj.popcursor()  # revert to the original cursor before proceeding
                 pygsurfObj.pushcursor()
                 self.eraseBufferSize = None
             pygsurfObj.write(self.prompt, fgcolor=self._promptfgcolor, bgcolor=self._promptbgcolor)
-            pygsurfObj.write(''.join(self.buffer) + ' ', fgcolor=self._fgcolor, bgcolor=self._bgcolor) # the space at the end is to change the color of the cursor
+            pygsurfObj.write(''.join(self.buffer) + ' ', fgcolor=self._fgcolor,
+                             bgcolor=self._bgcolor)  # the space at the end is to change the color of the cursor
             afterPromptX, afterPromptY = pygsurfObj.getnthcellfrom(self.startx, self.starty, len(self.prompt))
             pygsurfObj.inputcursor = pygsurfObj.getnthcellfrom(afterPromptX, afterPromptY, self.cursor)
-            pygsurfObj._drawinputcursor() # TODO - there's a bug if the prompt goes past the right edge, the screen cursor is in a weird place.
-            pygsurfObj.popcursor() # restore previous cursor position that print() moved.
+            pygsurfObj._drawinputcursor()  # TODO - there's a bug if the prompt goes past the right edge, the screen cursor is in a weird place.
+            pygsurfObj.popcursor()  # restore previous cursor position that print() moved.
         else:
             # all this must fit on one line, with any excess text truncated
             if self.eraseBufferSize is not None:
                 # need to blank out the previous drawn, longer string.
                 tempcursorx = self.startx
                 # TODO fix too long line
-                while tempcursorx < pygsurfObj.width and tempcursorx < self.startx + len(self.prompt) + self.eraseBufferSize:
+                while tempcursorx < pygsurfObj.width and tempcursorx < self.startx + len(
+                        self.prompt) + self.eraseBufferSize:
                     pygsurfObj.putchar(' ', tempcursorx, self.starty)
                     tempcursorx += 1
                 self.eraseBufferSize = None
             numToPrint = self._width - self.startx - 1
             # TODO - implement prompt colors, but keep in mind that this all has to be on one line.
-            pygsurfObj.putchars((self.prompt + ''.join(self.buffer))[:numToPrint], self.startx, self.starty, fgcolor=self._fgcolor, bgcolor=self._bgcolor)
+            pygsurfObj.putchars((self.prompt + ''.join(self.buffer))[:numToPrint], self.startx, self.starty,
+                                fgcolor=self._fgcolor, bgcolor=self._bgcolor)
             pygsurfObj.inputcursor = pygsurfObj.getnthcellfrom(self.startx, self.starty, self.cursor)
             pygsurfObj._drawinputcursor()
-
 
     def enter(self):
         """Sets self.done to True, which means that the user has intended to enter the currently typed in text as their complete response. While self.done is True, this object will no longer process additional keyboard events."""
         self.done = True
-
 
     def sendkeyevent(self, keyEvent):
         """Interpret the character that the pygame.event.Event object passed as keyEvent represents, and perform the associated action. These actions could be adding another character to the buffer, or manipulating the cursor position (such as when the arrow keys are pressed)."""
@@ -1997,22 +1929,24 @@ class PygcurseInput():
             return
 
         char = interpretkeyevent(keyEvent)
-        if char in ('\r', '\n') and keyEvent.type == KEYUP: # TODO - figure out which is the right one
+        if char in ('\r', '\n') and keyEvent.type == KEYUP:  # TODO - figure out which is the right one
             self.done = True
             self.pygsurf.inputcursormode = None
             x, y = self.pygsurf.getnthcellfrom(self.startx, self.starty, self.cursor)
-            self.pygsurf.write('\n') # print a newline to move the pygcurse surface object's cursor.
+            self.pygsurf.write('\n')  # print a newline to move the pygcurse surface object's cursor.
             self.pygsurf._repaintcell(x, y)
         elif char not in ('\r', '\n') and keyEvent.type == KEYDOWN:
             if char is None and keyEvent.key in self.KEYMAPPING:
-                (self.KEYMAPPING[keyEvent.key])() # call the related method
+                (self.KEYMAPPING[keyEvent.key])()  # call the related method
             elif char is not None:
-                if (self.whitelistchars is not None and char not in self.whitelistchars) or (self.blacklistchars is not None and char in self.blacklistchars):
-                    return # filter out based on white and black list
+                if (self.whitelistchars is not None and char not in self.whitelistchars) or (
+                        self.blacklistchars is not None and char in self.blacklistchars):
+                    return  # filter out based on white and black list
 
                 if char == '\t':
                     char = ' '
-                if (not self.insertMode and len(self.buffer) < self._maxlength) or (self.insertMode and self.cursor == len(self.buffer)):
+                if (not self.insertMode and len(self.buffer) < self._maxlength) or (
+                        self.insertMode and self.cursor == len(self.buffer)):
                     self.buffer.insert(self.cursor, char)
                     self.cursor += 1
                 elif len(self.buffer) < self._maxlength:
@@ -2020,17 +1954,14 @@ class PygcurseInput():
                     self.cursor += 1
         self.pygsurf.inputcursor = self.pygsurf.getnthcellfrom(self.startx, self.starty, self.cursor)
 
-
     def _debug(self):
         """Print out the current state of the PygcurseInput object to stdout."""
         print(self.prompt + ''.join(self.buffer) + '\t(%s length)' % len(self.buffer))
         print('.' * len(self.prompt) + '.' * self.cursor + '^')
 
-
     def __len__(self):
         """Returns the length of the buffer. This does not include the length of the prompt."""
         return len(self.buffer)
-
 
     # Properties
     def _propgetfgcolor(self):
@@ -2038,7 +1969,6 @@ class PygcurseInput():
 
     def _propsetfgcolor(self, value):
         self._fgcolor = getpygamecolor(value)
-
 
     def _propgetbgcolor(self):
         return self._bgcolor
@@ -2053,13 +1983,11 @@ class PygcurseInput():
         self._fgcolor = getpygamecolor(value[0])
         self._bgcolor = getpygamecolor(value[1])
 
-
     def _propgetpromptfgcolor(self):
         return self._promptfgcolor
 
     def _propsetpromptfgcolor(self, value):
         self._promptfgcolor = getpygamecolor(value)
-
 
     def _propgetpromptbgcolor(self):
         return self._promptbgcolor
@@ -2082,14 +2010,15 @@ class PygcurseInput():
     promptcolors = property(_propgetpromptcolors, _propsetpromptcolors)
 
 
-
 class PygcurseTextbox:
-    # TODO add thick borders, add caption_position
+    # TODO by Tomasz Szyborski
+    # TODO add thick borders
+    # TODO add caption_position
     def __init__(self, pygsurf, region=None, fgcolor=None, bgcolor=None,
                  text='', wrap=True, border='basic', caption='',
                  margin=0, marginleft=None, marginright=None, margintop=None,
                  marginbottom=None, shadow=None, shadowamount=51,
-                 caption_position = ''):
+                 caption_position=''):
         self.pygsurf = pygsurf
         self.x, self.y, self.width, self.height = pygsurf.getregion(region, False)
 
@@ -2097,8 +2026,9 @@ class PygcurseTextbox:
         self.bgcolor = (bgcolor is None) and (pygsurf.bgcolor) or (getpygamecolor(bgcolor))
         self.text = text
         self.wrap = wrap
-        self.border = border # value is one of 'basic', 'rounded', 'thick' or a single character
+        self.border = border  # value is one of 'basic', 'rounded', 'thick' or a single character
         self.caption = caption
+        self.caption_position = caption_position
 
         self.margintop = margin
         self.marginbottom = margin
@@ -2112,16 +2042,20 @@ class PygcurseTextbox:
             self.marginright = marginright
         if marginleft is not None:
             self.marginleft = marginleft
-        self.shadow = shadow # value is a None or directional constant, e.g. NORTHWEST
+        self.shadow = shadow  # value is a None or directional constant, e.g. NORTHWEST
         self.shadowamount = shadowamount
 
-        # not included in the parameters, because the number of parameters is getting ridiculous. The user can always change these later.
+        # not included in the parameters,
+        # because the number of parameters is getting ridiculous.
+        # The user can always change these later.
         self.shadowxoffset = 1
         self.shadowyoffset = 1
 
     def update(self, pygsurf=None):
-        # NOTE - border of 'basic' uses +,-,| scheme. A single letter can be used to use that character for a border. None means no border. '' means an empty border (same as border of None and margin of 1)
-        # NOTE 'thick' option consist ╔ ═ ═ ╗ ║ ╚══╝
+        # NOTE - border of 'basic' uses +,-,| scheme.
+        # A single letter can be used to use that character for a border.
+        # None means no border. '' means an empty border (same as border of None and margin of 1)
+        # NOTE 'thick' option consists of ╔ ═ ═ ╗ ║ ╚══╝
         # NOTE - this function does not create scrollbars, any excess characters are just truncated.
 
         if pygsurf is None:
@@ -2149,41 +2083,55 @@ class PygcurseTextbox:
 
         # draw border
         # TODO add 'thick' option
-        if self.border in ('basic', 'rounded'):
+        if self.border in ('basic', 'rounded', 'thick'):
+            top_bottom_sides = "-"
+            left_right_sides = "|"
+            if self.border == 'basic':
+                top_left_corner = top_right_corner = bottom_left_corner = bottom_right_corner = "+"
+            elif self.border == 'rounded':
+                top_left_corner = bottom_right_corner = "/"
+                bottom_left_corner = top_right_corner = "\\"
+            else:
+                top_left_corner = "╔"
+                top_right_corner = "╗"
+                bottom_left_corner = "╚"
+                bottom_right_corner = "╝"
+                top_bottom_sides = "═"
+                left_right_sides = "║"
             # corners
             if pygsurf.isonscreen(x, y):
-                pygsurf._screenchar[x][y] = (self.border == 'basic') and '+' or '/'
+                pygsurf._screenchar[x][y] = top_left_corner
             if pygsurf.isonscreen(x + width - 1, y):
-                pygsurf._screenchar[x + width - 1][y] = (self.border == 'basic') and '+' or '\\'
+                pygsurf._screenchar[x + width - 1][y] = top_right_corner
             if pygsurf.isonscreen(x, y + height - 1):
-                pygsurf._screenchar[x][y + height - 1] = (self.border == 'basic') and '+' or '\\'
+                pygsurf._screenchar[x][y + height - 1] = bottom_left_corner
             if pygsurf.isonscreen(x + width - 1, y + height - 1):
-                pygsurf._screenchar[x + width - 1][y + height - 1] = (self.border == 'basic') and '+' or '/'
+                pygsurf._screenchar[x + width - 1][y + height - 1] = bottom_right_corner
 
             # top/bottom side
             for ix in range(x + 1, x + width - 1):
                 if pygsurf.isonscreen(ix, y):
-                    pygsurf._screenchar[ix][y] = '-'
-                if pygsurf.isonscreen(ix, y + height-1):
-                    pygsurf._screenchar[ix][y + height-1] = '-'
+                    pygsurf._screenchar[ix][y] = top_bottom_sides
+                if pygsurf.isonscreen(ix, y + height - 1):
+                    pygsurf._screenchar[ix][y + height - 1] = top_bottom_sides
 
             # left/right side
-            for iy in range(y+1, y + height-1):
+            for iy in range(y + 1, y + height - 1):
                 if pygsurf.isonscreen(x, iy):
-                    pygsurf._screenchar[x][iy] = '|'
+                    pygsurf._screenchar[x][iy] = left_right_sides
                 if pygsurf.isonscreen(x + width - 1, iy):
-                    pygsurf._screenchar[x + width - 1][iy] = '|'
+                    pygsurf._screenchar[x + width - 1][iy] = left_right_sides
         elif self.border is not None and len(self.border) == 1:
             # use a single character to draw the entire border
             # top/bottom side
             for ix in range(x, x + width):
                 if pygsurf.isonscreen(ix, y):
                     pygsurf._screenchar[ix][y] = self.border
-                if pygsurf.isonscreen(ix, y + height-1):
-                    pygsurf._screenchar[ix][y + height-1] = self.border
+                if pygsurf.isonscreen(ix, y + height - 1):
+                    pygsurf._screenchar[ix][y + height - 1] = self.border
 
             # left/right side
-            for iy in range(y+1, y + height-1):
+            for iy in range(y + 1, y + height - 1):
                 if pygsurf.isonscreen(x, iy):
                     pygsurf._screenchar[x][iy] = self.border
                 if pygsurf.isonscreen(x + width - 1, iy):
@@ -2199,11 +2147,11 @@ class PygcurseTextbox:
 
         # draw the textbox shadow
         if self.shadow is not None:
-            pygsurf.addshadow(x=x, y=y, width=width, height=height, amount=self.shadowamount, direction=self.shadow, xoffset=self.shadowxoffset, yoffset=self.shadowyoffset)
-
+            pygsurf.addshadow(x=x, y=y, width=width, height=height, amount=self.shadowamount, direction=self.shadow,
+                              xoffset=self.shadowxoffset, yoffset=self.shadowyoffset)
 
         if self.text == '':
-            return # There's no text to display, so return after drawing the background and border.
+            return  # There's no text to display, so return after drawing the background and border.
         text = self.getdisplayedtext()
         if text == '':
             return
@@ -2221,7 +2169,7 @@ class PygcurseTextbox:
         width -= (self.marginleft + self.marginright)
         height -= (self.margintop + self.marginbottom)
 
-        if y < 0: # if the top row of text is above the top edge of the surface, then truncate
+        if y < 0:  # if the top row of text is above the top edge of the surface, then truncate
             text = text[abs(y):]
             y = 0
         maxDisplayedLines = (y + height < pygsurf._height) and (height) or (max(0, pygsurf._height - y))
@@ -2236,9 +2184,8 @@ class PygcurseTextbox:
                 pygsurf._screenchar[x + ix][y + iy] = line[ix]
             iy += 1
 
-
     def getdisplayedtext(self):
-    # returns the text that can be displayed given the box's current width, height, border, and margins
+        # returns the text that can be displayed given the box's current width, height, border, and margins
         margintop = self.margintop
         marginbottom = self.marginbottom
         marginright = self.marginright
@@ -2257,16 +2204,16 @@ class PygcurseTextbox:
         height = self.height - margintop - marginbottom
 
         if width < 1 or height < 1:
-            return '' # no room for text
+            return ''  # no room for text
 
         # handle word wrapping
         if self.wrap:
             text = textwrap.wrap(self.text, width=width)
         else:
-            text = spitintogroupsof(width, self.text) # TODO - slight bug where if a line ends with \n, it could show an additional character. (this is the behavior of textwrap.wrap())
+            text = spitintogroupsof(width,
+                                    self.text)  # TODO - slight bug where if a line ends with \n, it could show an additional character. (this is the behavior of textwrap.wrap())
 
         return text[:height]
-
 
     def erase(self):
         # a convenience function, more than anything. Does the same thing as fill except for just the area of this text box.
@@ -2276,129 +2223,170 @@ class PygcurseTextbox:
 
     def _propgetleft(self):
         return self.x
+
     def _propgetright(self):
-        return self.x + self.width - 1 # note: this behavior is different from pygame Rect objects, which do not have the -1.
+        return self.x + self.width - 1  # note: this behavior is different from pygame Rect objects, which do not have the -1.
+
     def _propgettop(self):
         return self.y
+
     def _propgetbottom(self):
-        return self.y + self.height - 1 # note: this behavior is different from pygame Rect objects, which do not have the -1.
+        return self.y + self.height - 1  # note: this behavior is different from pygame Rect objects, which do not have the -1.
+
     def _propgetcenterx(self):
         return self.x + int(self.width / 2)
+
     def _propgetcentery(self):
         return self.y + int(self.height / 2)
+
     def _propgettopleft(self):
         return (self.x, self.y)
+
     def _propgettopright(self):
         return (self.x + self.width - 1, self.y)
+
     def _propgetbottomleft(self):
         return (self.x, self.y + self.height - 1)
+
     def _propgetbottomright(self):
         return (self.x + self.width - 1, self.y + self.height - 1)
+
     def _propgetmidleft(self):
         return (self.x, self.y + int(self.height / 2))
+
     def _propgetmidright(self):
         return (self.x + self.width - 1, self.y + int(self.height / 2))
+
     def _propgetmidtop(self):
         return (self.x + int(self.width / 2), self.y)
+
     def _propgetmidbottom(self):
         return (self.x + int(self.width / 2), self.y + self.height - 1)
+
     def _propgetcenter(self):
         return (self.x + int(self.width / 2), self.y + int(self.height / 2))
+
     def _propgetregion(self):
         return (self.x, self.y, self.width, self.height)
 
     def _propsetleft(self, value):
         self.x = value
+
     def _propsetright(self, value):
         self.x = value - self.width
+
     def _propsettop(self, value):
         self.y = value
+
     def _propsetbottom(self, value):
         self.y = value - self.height
+
     def _propsetcenterx(self, value):
         self.x = value - int(self.width / 2)
+
     def _propsetcentery(self, value):
         self.y = value - int(self.height / 2)
+
     def _propsetcenter(self, value):
         self.x = value[0] - int(self.width / 2)
         self.y = value[1] - int(self.height / 2)
+
     def _propsettopleft(self, value):
         self.x = value[0]
         self.y = value[1]
+
     def _propsettopright(self, value):
         self.x = value[0] - self.width
         self.y = value[1]
+
     def _propsetbottomleft(self, value):
         self.x = value[0]
         self.y = value[1] - self.height
+
     def _propsetbottomright(self, value):
         self.x = value[0] - self.width
         self.y = value[1] - self.height
+
     def _propsetmidleft(self, value):
         self.x = value[0]
         self.y = value[1] - int(self.height / 2)
+
     def _propsetmidright(self, value):
         self.x = value[0] - self.width
         self.y = value[1] - int(self.height / 2)
+
     def _propsetmidtop(self, value):
         self.x = value[0] - int(self.width / 2)
         self.y = value[1]
+
     def _propsetmidbottom(self, value):
         self.x = value[0] - int(self.width / 2)
         self.y = value[1] - self.height
+
     def _propsetregion(self, value):
         self.x, self.y, self.width, self.height = self.pygsurf.getregion(value, False)
 
     def _propgetsize(self):
         return (self.width, self.height)
+
     def _propsetsize(self, value):
         newwidth = int(value[0])
         newheight = int(value[1])
         if newwidth != self.width or newheight != self.height:
             self.resize(newwidth, newheight)
+
     def _propgetpixelwidth(self):
         return self.width * self._cellwidth
+
     def _propsetpixelwidth(self, value):
         newwidth = int(int(value) / self._cellwidth)
         if newwidth != self.width:
             self.resize(newwidth=newwidth)
+
     def _propgetpixelheight(self):
         return self.height * self._cellheight
+
     def _propsetpixelheight(self, value):
         newheight = int(int(value) / self._cellheight)
         if newheight != self.height:
             self.resize(newheight=newheight)
+
     def _propgetpixelsize(self):
         return (self.width * self._cellwidth, self.height * self._cellheight)
+
     def _propsetpixelsize(self, value):
         newwidth = int(int(value) / self._cellwidth)
         newheight = int(int(value) / self._cellheight)
         if newwidth != self.width or newheight != self.height:
             self.resize(newwidth, newheight)
 
-    left        = property(_propgetleft, _propsetleft)
-    right       = property(_propgetright, _propsetright)
-    top         = property(_propgettop, _propsettop)
-    bottom      = property(_propgetbottom, _propsetbottom)
-    centerx     = property(_propgetcenterx, _propsetcenterx)
-    centery     = property(_propgetcentery, _propsetcentery)
-    center      = property(_propgetcenter, _propsetcenter)
-    topleft     = property(_propgettopleft, _propsettopleft)
-    topright    = property(_propgettopright, _propsettopright)
-    bottomleft  = property(_propgetbottomleft, _propsetbottomleft)
+    left = property(_propgetleft, _propsetleft)
+    right = property(_propgetright, _propsetright)
+    top = property(_propgettop, _propsettop)
+    bottom = property(_propgetbottom, _propsetbottom)
+    centerx = property(_propgetcenterx, _propsetcenterx)
+    centery = property(_propgetcentery, _propsetcentery)
+    center = property(_propgetcenter, _propsetcenter)
+    topleft = property(_propgettopleft, _propsettopleft)
+    topright = property(_propgettopright, _propsettopright)
+    bottomleft = property(_propgetbottomleft, _propsetbottomleft)
     bottomright = property(_propgetbottomright, _propsetbottomright)
-    midleft     = property(_propgetmidleft, _propsetmidleft)
-    midright    = property(_propgetmidright, _propsetmidright)
-    midtop      = property(_propgetmidtop, _propsetmidtop)
-    midbottom   = property(_propgetmidbottom, _propsetmidbottom)
-    region      = property(_propgetregion, _propsetregion)
+    midleft = property(_propgetmidleft, _propsetmidleft)
+    midright = property(_propgetmidright, _propsetmidright)
+    midtop = property(_propgetmidtop, _propsetmidtop)
+    midbottom = property(_propgetmidbottom, _propsetmidbottom)
+    region = property(_propgetregion, _propsetregion)
 
-    pixelwidth  = property(_propgetsize, _propsetsize)
+    pixelwidth = property(_propgetsize, _propsetsize)
     pixelheight = property(_propgetsize, _propsetsize)
-    pixelsize   = property(_propgetsize, _propsetsize)
-    size        = property(_propgetsize, _propsetsize)
+    pixelsize = property(_propgetsize, _propsetsize)
+    size = property(_propgetsize, _propsetsize)
 
-_shiftchars = {'`':'~', '1':'!', '2':'@', '3':'#', '4':'$', '5':'%', '6':'^', '7':'&', '8':'*', '9':'(', '0':')', '-':'_', '=':'+', '[':'{', ']':'}', '\\':'|', ';':':', "'":'"', ',':'<', '.':'>', '/':'?'}
+
+_shiftchars = {'`': '~', '1': '!', '2': '@', '3': '#', '4': '$', '5': '%', '6': '^', '7': '&', '8': '*', '9': '(',
+               '0': ')', '-': '_', '=': '+', '[': '{', ']': '}', '\\': '|', ';': ':', "'": '"', ',': '<', '.': '>',
+               '/': '?'}
+
 
 def interpretkeyevent(keyEvent):
     """Returns the character represented by the pygame.event.Event object in keyEvent. This makes adjustments for the shift key and capslock."""
@@ -2412,7 +2400,7 @@ def interpretkeyevent(keyEvent):
         elif shift and char in _shiftchars:
             char = _shiftchars[char]
         return char
-    return None # None means that there is no printable character corresponding to this keyEvent
+    return None  # None means that there is no printable character corresponding to this keyEvent
 
 
 def spitintogroupsof(groupSize, theList):
@@ -2420,7 +2408,7 @@ def spitintogroupsof(groupSize, theList):
     # most groupSize number of items.
     result = []
     for i in range(0, len(theList), groupSize):
-        result.append(theList[i:i+groupSize])
+        result.append(theList[i:i + groupSize])
     return result
 
 
@@ -2441,7 +2429,7 @@ def calcfontsize(font):
     maxwidth = 0
     maxheight = 0
     for i in range(32, 127):
-        surf = font.render(chr(i), True, (0,0,0))
+        surf = font.render(chr(i), True, (0, 0, 0))
         if surf.get_width() > maxwidth:
             maxwidth = surf.get_width()
         if surf.get_height() > maxheight:
@@ -2458,7 +2446,7 @@ def _ismonofont(font):
     minwidth = 0
     minheight = 0
     for i in range(32, 127):
-        surf = font.render(chr(i), True, (0,0,0))
+        surf = font.render(chr(i), True, (0, 0, 0))
         if surf.get_width() < minwidth:
             minwidth = surf.get_width()
         if surf.get_height() < minheight:
@@ -2484,6 +2472,7 @@ def getpygamecolor(value):
         return pygame.Color(*color)
     return color
 
+
 def waitforkeypress(fps=None):
     # Go through event queue looking for a KEYUP event.
     # Grab KEYDOWN events to remove them from the event queue.
@@ -2491,8 +2480,8 @@ def waitforkeypress(fps=None):
         clock = pygame.time.Clock()
 
     while True:
-        #Only getting specific event types means that if the queue fills with irrelevant events
-        #such as if the user moves the mouse, the program will completely lock up!
+        # Only getting specific event types means that if the queue fills with irrelevant events
+        # such as if the user moves the mouse, the program will completely lock up!
         for event in pygame.event.get():
             if event.type == KEYDOWN:
                 continue
@@ -2505,6 +2494,7 @@ def waitforkeypress(fps=None):
         if fps is not None:
             clock.tick(fps)
 
+
 def regionsoverlap(region1, region2):
     return withinregion(region1[0], region1[1], region2) or \
            withinregion(region1[0] + region1[2], region1[1], region2) or \
@@ -2515,11 +2505,14 @@ def regionsoverlap(region1, region2):
            withinregion(region2[0], region2[1] + region2[3], region1) or \
            withinregion(region2[0] + region2[2], region2[1] + region2[3], region1)
 
+
 def withinregion(x, y, region):
     return x > region[0] and x < region[0] + region[2] and y > region[1] and y < region[1] + region[3]
 
+
 def iswide(ch):
     return ch is not None and unicodedata.east_asian_width(unicode(ch)) in ('F', 'W')
+
 
 def getcharwidth(ch):
     return 2 if iswide(ch) else 1

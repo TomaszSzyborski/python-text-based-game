@@ -1,14 +1,21 @@
 import pygame, sys
 import pygcurses_tomasz as pygcurse
 from pygame.locals import *
-win = pygcurse.PygcurseWindow(40, 25)
+
+#initalize fonts
+pygame.font.init()
+# list all fonts
+print(pygame.font.get_fonts())
+# correct font is required to render thic borders
+font = pygame.font.SysFont(name="consolas", size=14, bold=True)
+win = pygcurse.PygcurseWindow(40, 25, font=font)
 win.autoblit = False
 
 
 box = pygcurse.PygcurseTextbox(win, (4, 4, 20, 14),
-                               fgcolor='red',
-                               bgcolor='black',
-                               border='"', #basic
+                               # fgcolor='red',
+                               # bgcolor='black',
+                               border='thick', #basic
                                wrap=True,
                                marginleft=3,
                                caption='Hello world!')

@@ -24,5 +24,5 @@ class PyTest(TestCommand):
 setup(
     # ...,
     tests_require=["pytest", "pytest-cov"],
-    cmdclass={"pytest": PyTest},
+    cmdclass={"pytest": PyTest}, install_requires=['pygame']
 )
