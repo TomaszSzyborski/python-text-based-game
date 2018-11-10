@@ -66,3 +66,8 @@ additional polish onomatopeia:
 
 music like:
 https://www.youtube.com/watch?v=j1FzVxVU5bU
+
+terminal like:
+https://github.com/graktung/myterminal
+
+https://cutekaomoji.com/

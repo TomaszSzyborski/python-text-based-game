@@ -19,8 +19,8 @@ modified on 8.11.2018 by
 Tomasz Szyborski
 - added fixes with missing self.
 - added TODOS with writing text boxes
--upgrade version to 0.10.3
-
+- upgrade version to 0.10.3
+modifying PygcurseTextbox
 Some nomenclature in this module's comments explained:
 
 Cells:
@@ -2018,7 +2018,7 @@ class PygcurseTextbox:
                  text='', wrap=True, border='basic', caption='',
                  margin=0, marginleft=None, marginright=None, margintop=None,
                  marginbottom=None, shadow=None, shadowamount=51,
-                 caption_position=''):
+                 caption_position: str =''):
         self.pygsurf = pygsurf
         self.x, self.y, self.width, self.height = pygsurf.getregion(region, False)
 
@@ -2211,7 +2211,8 @@ class PygcurseTextbox:
             text = textwrap.wrap(self.text, width=width)
         else:
             text = spitintogroupsof(width,
-                                    self.text)  # TODO - slight bug where if a line ends with \n, it could show an additional character. (this is the behavior of textwrap.wrap())
+                                    self.text)
+            # TODO - slight bug where if a line ends with \n, it could show an additional character. (this is the behavior of textwrap.wrap())
 
         return text[:height]
 
@@ -2457,7 +2458,9 @@ def _ismonofont(font):
 
 
 def getpygamecolor(value):
-    """Returns a pygame.Color object of the argument passed in. The argument can be a RGB/RGBA tuple, pygame.Color object, or string in the colornames dict (such as 'blue' or 'gray')."""
+    """Returns a pygame.Color object of the argument passed in.
+     The argument can be a RGB/RGBA tuple, pygame.
+     Color object, or string in the colornames dict (such as 'blue' or 'gray')."""
     if type(value) in (tuple, list):
         alpha = len(value) > 3 and value[3] or 255
         return pygame.Color(value[0], value[1], value[2], alpha)
