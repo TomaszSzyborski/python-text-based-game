@@ -1,14 +1,14 @@
 import random
 import string
 
+from typing import List
 
-def draw_table(width: int = 80, height: int = 40,
+def draw_table(height: int = None, width: int = None,
                top_left_corner: str = "", top_right_corner: str = "",
                bottom_left_corner: str = "", bottom_right_corner: str = "",
                top_bottom_sides: str = "", left_right_sides: str = "",
-               data: list = None):
+               rows_of_data: List[str] = None, padding: int = 2):
     """
-
     @param width: int - number of characters - represents column table + 2 as border
     @param height: int - number of charactes - represents rows in table + 2 as border
     @param top_left_corner: str - single character representing top left corner the table
@@ -17,22 +17,28 @@ def draw_table(width: int = 80, height: int = 40,
     @param bottom_right_corner: str - single character representing bottom right corner the table
     @param top_bottom_sides: str - single character representing top and bottom sides of the table
     @param left_right_sides: str - single character representing left and right sides of the table
-    @param data: list of strings to be written in table
+    @param rows_of_data: list of strings to be written in table
+    @param padding: integer for left and right padding of string within the table
     @return: None
     """
+    rows_of_data = [f"{' '*padding}{row}{' '*padding}" for row in rows_of_data]
+
+    height = len(rows_of_data) + 2 if height is None else height
+    width = len(max(rows_of_data, key=len)) + 2 if width is None else width
+
     for i in range(height):
         if i == 0:
             print(f"{top_left_corner}{top_bottom_sides*(width-2)}{top_right_corner}")
         elif i == height - 1:
             print(f"{bottom_left_corner}{top_bottom_sides*(width-2)}{bottom_right_corner}")
         else:
-            to_print = data[i-1].center(width, ' ')
+            to_print = rows_of_data[i-1].center(width, ' ')
             print(f"{left_right_sides}{to_print[1:-1]}{left_right_sides}")
 
 
 thick = {
-    "width": 80,
-    "height": 40,
+    # "width": 80,
+    # "height": 40,
     "top_left_corner": "╔",
     "top_right_corner": "╗",
     "bottom_left_corner": "╚",
@@ -42,8 +48,8 @@ thick = {
 }
 
 basic = {
-    "width": 80,
-    "height": 40,
+    # "width": 80,
+    # "height": 40,
     "top_left_corner": "+",
     "top_right_corner": "+",
     "bottom_left_corner": "+",
@@ -53,8 +59,8 @@ basic = {
 }
 
 rounded = {
-    "width": 80,
-    "height": 40,
+    # "width": 80,
+    # "height": 40,
     "top_left_corner": "/",
     "top_right_corner": "\\",
     "bottom_left_corner": "\\",
@@ -64,20 +70,20 @@ rounded = {
 }
 
 
-data = [''.join(random.choice(string.ascii_letters) for _ in range(random.randint(2, 10))) for i in range(80)]
+data = [''.join(random.choice(string.ascii_letters) for _ in range(random.randint(2, 10))) for i in range(20)]
 
 print("Thick table")
-draw_table(**thick, data=data)
+draw_table(**thick, rows_of_data=data)
 
 print("Basic table")
-draw_table(**basic, data=data)
+draw_table(**basic, rows_of_data=data)
 
 print("Rounded table")
-draw_table(**rounded, data=data)
+draw_table(**rounded, rows_of_data=data)
 
 print("Default table")
-draw_table(data=data)
+draw_table(rows_of_data=data)
 
 other = {k: '*' for k, v in thick.items() if k not in ("width", "height")}
 print("Other table")
-draw_table(**other, data=data)
+draw_table(**other, rows_of_data=data)
