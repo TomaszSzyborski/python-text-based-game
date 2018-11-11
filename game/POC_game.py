@@ -158,8 +158,8 @@ def print_location():
 # print_location()
 
 def prompt():
-    # os.system('cls' if os.name == 'nt' else 'clear')
-    print("\n", "=" * 80)
+    print()
+    print("=" * 80)
     print("What would you like to do?")
     action = input("action > ").lower()
 
@@ -174,7 +174,14 @@ def prompt():
         print(", ".join(acceptable_actions))
         action = input("action > ").lower()
     if action in exit_actions:
-        sys.exit()
+        while True:
+            choice = input("Are you sure? (y/n) > ")
+            if choice.lower() == 'y':
+                sys.exit()
+            elif choice.lower() == 'n':
+                break
+            else:
+                print("Nonexistent choice")
     elif action in moving_actions:
         player_move()
     elif action in looking_actions:
