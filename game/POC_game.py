@@ -49,7 +49,7 @@ def title_screen_selection():
 # title_screen_selection()
 
 def title_screen():
-    os.system("clear")
+    os.system('cls' if os.name == 'nt' else 'clear')
     print(80 * "#")
     print("#", "WELCOME TO RPG GAME".center(76), "#")
     print(80 * "#")
@@ -59,7 +59,7 @@ def title_screen():
 
 
 def help_menu():
-    os.system("clear")
+    os.system('cls' if os.name == 'nt' else 'clear')
     print(80 * "#")
     print("#", "WELCOME TO RPG GAME".center(76), "#")
     print(80 * "#")
@@ -146,6 +146,7 @@ zonemap["b2"][DESCRIPTION] = "This is your home"
 
 ##### GAME INTERACTIVITY #####
 def print_location():
+    # os.system('cls' if os.name == 'nt' else 'clear')
     here = myPlayer.location
     print("Your position is:")
     print("", "#" * 6)
@@ -157,6 +158,7 @@ def print_location():
 # print_location()
 
 def prompt():
+    # os.system('cls' if os.name == 'nt' else 'clear')
     print("\n", "=" * 80)
     print("What would you like to do?")
     action = input("action > ").lower()
@@ -240,7 +242,7 @@ def main_game_loop():
 
 
 def setup_game():
-    os.system("clear")
+    os.system('cls' if os.name == 'nt' else 'clear')
 
     ##### NAME HANDLING
     question1 = "Greetings stranger! What is your name?"
