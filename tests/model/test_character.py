@@ -43,4 +43,5 @@ def test_drop_item_on_the_floor(character_with_items):
     assert len(character_with_items.inventory) == 1
     character_with_items.drop_item_on_the_floor(1)
     assert len(character_with_items.inventory) == 0
-    character_with_items.drop_item_on_the_floor(1)
+    with pytest.raises(IndexError):
+        character_with_items.drop_item_on_the_floor(1)
