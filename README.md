@@ -71,3 +71,7 @@ terminal like:
 https://github.com/graktung/myterminal
 
 https://cutekaomoji.com/
+
+saving/loading games:
+https://stackoverflow.com/questions/6420311/how-to-make-save-load-game-functions-in-pygame
+(requires to create single object to store game data)

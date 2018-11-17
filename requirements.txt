@@ -1,3 +1,4 @@
+pygame
 absl-py==0.5.0
 astor==0.7.1
 backcall==0.1.0
