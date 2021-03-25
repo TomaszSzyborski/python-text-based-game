@@ -52,7 +52,7 @@ pystan==2.18.0.0
 python-dateutil==2.7.3
 pytz==2018.5
 pywinpty==0.5.4
-PyYAML==3.13
+PyYAML==5.4
 pyzmq==17.1.2
 qtconsole==4.4.1
 quantecon==0.4.1
